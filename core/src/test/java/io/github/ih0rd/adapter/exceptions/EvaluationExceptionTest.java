@@ -1,0 +1,23 @@
+package io.github.ih0rd.adapter.exceptions;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+
+class EvaluationExceptionTest {
+
+  @Test
+  void constructorWithMessage() {
+    EvaluationException ex = new EvaluationException("msg");
+    assertEquals("msg", ex.getMessage());
+    assertNull(ex.getCause());
+  }
+
+  @Test
+  void constructorWithMessageAndCause() {
+    RuntimeException cause = new RuntimeException("boom");
+    EvaluationException ex = new EvaluationException("msg2", cause);
+    assertEquals("msg2", ex.getMessage());
+    assertSame(cause, ex.getCause());
+  }
+}

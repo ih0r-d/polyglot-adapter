@@ -26,10 +26,11 @@ polyglot-adapter-core is a lightweight Java library that provides a unified, hig
 
 ## Modules and main types
 - `io.github.ih0r.adapter.api.PolyglotAdapter`: High-level facade
-- `io.github.ih0r.adapter.api.executors.PyExecutor`: Internal Python executor (GraalPy)
+- `io.github.ih0rd.adapter.api.executors.PyExecutor`: Internal Python executor (GraalPy)
 - `io.github.ih0r.adapter.api.executors.BaseExecutor`: Contract for executors
 - `io.github.ih0r.adapter.api.context.PolyglotContextFactory`: Builder for `org.graalvm.polyglot.Context`
 - `io.github.ih0r.adapter.api.context.Language`: Enum for supported languages
+- `io.github.ih0r.adapter.api.context.ResourcesProvider`: Centralized resolver for per-language resource paths
 - Utilities: `CommonUtils`, `StringCaseConverter`
 - Exceptions: `EvaluationException`
 
@@ -56,7 +57,7 @@ polyglot-adapter-core is a lightweight Java library that provides a unified, hig
 
 ## Quick start
 
-### Default Python adapter (compilable)
+### Default Python adapter
 ```java
 import io.github.ih0r.adapter.api.PolyglotAdapter;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class DemoDefault {
 }
 ```
 
-### Custom context configuration (compilable)
+### Custom context configuration
 ```java
 import io.github.ih0r.adapter.api.PolyglotAdapter;
 import io.github.ih0r.adapter.api.context.Language;
@@ -90,7 +91,7 @@ public class DemoCustom {
 }
 ```
 
-### Generic executor (future-proof, compilable)
+### Generic executor (future-proof)
 ```java
 import io.github.ih0r.adapter.api.PolyglotAdapter;
 import io.github.ih0r.adapter.api.executors.BaseExecutor;
@@ -109,7 +110,7 @@ public class DemoGeneric {
 
 ## Defining your Python API
 
-### Java interface (compilable)
+### Java interface
 ```java
 public interface MyApi {
     int add(int a, int b);
@@ -133,7 +134,9 @@ class MyApi:
 ## How it works
 - `PyExecutor` resolves the Python file name from the Java interface simple name using camelCase → snake_case.
 - It loads the script from the classpath under `resources/python/<file>.py`.
-- Optionally, it can fall back to a filesystem path defined by the system property `polyglot.py-resources.path` (default: `${user.dir}/src/main/python`).
+- If not found, it falls back to a filesystem path provided by `ResourcesProvider.get(Language.PYTHON)`:
+    - Default: `${user.dir}/src/main/python`
+    - Overridable: `-Dpolyglot.py-resources.path=/custom/path/to/python`
 - A `Context` is created using `PolyglotContextFactory(Language.PYTHON)`.
 - The top-level Python class is instantiated and mapped to the Java interface.
 - The requested method is invoked via reflection helpers in `CommonUtils`.
@@ -149,7 +152,8 @@ class MyApi:
     - `allowNativeAccess`
     - `allowExperimentalOptions`
     - `PolyglotAccess`
-- Python files are expected on the classpath (`resources/python`). During development, you can override the lookup path:
+- Python files are expected on the classpath (`resources/python`).  
+  During development, override with:
   ```bash
   -Dpolyglot.py-resources.path=/absolute/path/to/python
   ```
