@@ -18,6 +18,7 @@
         <spotless.version>3.0.0</spotless.version>
         <jacoco.version>0.8.13</jacoco.version>
         <surefire.version>3.5.3</surefire.version>
+        <python.packages/>
     </properties>
 
     <dependencies>
@@ -122,6 +123,29 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.graalvm.python</groupId>
+                <artifactId>graalpy-maven-plugin</artifactId>
+                <version>${graal.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-python-resources</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <packages>
+                                <package>${python.packages}</package>
+                            </packages>
+                            <pythonResourcesDirectory>
+                                ${project.basedir}/python-resources
+                            </pythonResourcesDirectory>
+                        </configuration>
+                        <goals>
+                            <goal>process-graalpy-resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 </project>
