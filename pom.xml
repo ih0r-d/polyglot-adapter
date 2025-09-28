@@ -3,78 +3,83 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.ih0r</groupId>
+    <groupId>io.github.ih0rd</groupId>
     <artifactId>polyglot-adapter</artifactId>
     <version>0.0.1</version>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>core</module>
-        <module>examples</module>
-    </modules>
+    <packaging>jar</packaging>
+    <name>polyglot-adapter</name>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
         <maven.compiler.target>25</maven.compiler.target>
         <graal.version>25.0.0</graal.version>
         <junit.version>5.10.0</junit.version>
-        <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
+        <mockito.version>5.14.2</mockito.version>
+        <spotless.version>3.0.0</spotless.version>
+        <jacoco.version>0.8.13</jacoco.version>
+        <surefire.version>3.5.3</surefire.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.graalvm.sdk</groupId>
-                <artifactId>graal-sdk</artifactId>
-                <version>${graal.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.polyglot</groupId>
-                <artifactId>polyglot</artifactId>
-                <version>${graal.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.python</groupId>
-                <artifactId>python</artifactId>
-                <version>${graal.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.python</groupId>
-                <artifactId>python-launcher</artifactId>
-                <version>${graal.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.graalvm.python</groupId>
-                <artifactId>python-embedding</artifactId>
-                <version>${graal.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <dependencies>
+        <!-- GraalVM -->
+        <dependency>
+            <groupId>org.graalvm.sdk</groupId>
+            <artifactId>graal-sdk</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.polyglot</groupId>
+            <artifactId>polyglot</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.python</groupId>
+            <artifactId>python-launcher</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.python</groupId>
+            <artifactId>python-embedding</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.graalvm.python</groupId>
-                    <artifactId>graalpy-maven-plugin</artifactId>
-                    <version>${graal.version}</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>${spotless-maven-plugin.version}</version>
+                <version>${spotless.version}</version>
                 <configuration>
                     <java>
-                        <importOrder />
                         <removeUnusedImports />
                         <googleJavaFormat />
                         <formatAnnotations />
@@ -97,7 +102,26 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

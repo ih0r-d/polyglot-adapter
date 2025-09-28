@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>io.github.ih0rd</groupId>
-            <artifactId>polyglot-adapter-core</artifactId>
+            <artifactId>polyglot-adapter</artifactId>
             <version>0.0.1</version>
         </dependency>
         <dependency>

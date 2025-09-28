@@ -2,14 +2,12 @@ package io.github.ih0rd.examples;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.ih0r.adapter.api.PolyglotAdapter;
+import io.github.ih0rd.adapter.api.PolyglotAdapter;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-class HelloPolyglotTest {
+class PolyglotDemoTest {
 
     @Test
     void testAdd() {

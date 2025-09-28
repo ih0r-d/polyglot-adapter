@@ -1,0 +1,41 @@
+version: "3"
+
+vars:
+  MAVEN_OPTS: >
+    --enable-native-access=ALL-UNNAMED
+    --add-opens=java.base/java.lang=ALL-UNNAMED
+    --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED
+    -XX:+IgnoreUnrecognizedVMOptions
+    -XX:+SuppressUnsafeAccessWarnings
+
+tasks:
+  clean:
+    desc: Clean target and python resources
+    cmds:
+      - rm -rf python-resources
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean
+
+  build:
+    desc: Build project
+    cmds:
+      - rm -rf python-resources
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean package
+
+  test:
+    desc: Run tests
+    cmds:
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw test
+
+  verify:
+    desc: Run tests and Checkstyle
+    cmds:
+      - task: test
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw checkstyle:check
+
+  default:
+    desc: Default task (clean + build + test)
+
+
+    cmds:
+      - task: clean
+      - task: build
