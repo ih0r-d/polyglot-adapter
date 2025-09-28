@@ -136,7 +136,7 @@ class MyApi:
 - It loads the script from the classpath under `resources/python/<file>.py`.
 - If not found, it falls back to a filesystem path provided by `ResourcesProvider.get(Language.PYTHON)`:
     - Default: `${user.dir}/src/main/python`
-    - Overridable: `-Dpolyglot.py-resources.path=/custom/path/to/python`
+    - Overridable: `-Dpolyglot.py.polyglot-resources.path=/custom/path/to/python`
 - A `Context` is created using `PolyglotContextFactory(Language.PYTHON)`.
 - The top-level Python class is instantiated and mapped to the Java interface.
 - The requested method is invoked via reflection helpers in `CommonUtils`.
@@ -155,7 +155,7 @@ class MyApi:
 - Python files are expected on the classpath (`resources/python`).  
   During development, override with:
   ```bash
-  -Dpolyglot.py-resources.path=/absolute/path/to/python
+  -Dpolyglot.py.polyglot-resources.path=/absolute/path/to/python
   ```
 
 ---
