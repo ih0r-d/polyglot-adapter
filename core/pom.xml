@@ -15,11 +15,12 @@
         <graal.version>25.0.0</graal.version>
         <junit.version>5.10.0</junit.version>
         <mockito.version>5.14.2</mockito.version>
-        <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
+        <spotless.version>3.0.0</spotless.version>
+        <jacoco.version>0.8.13</jacoco.version>
     </properties>
 
     <dependencies>
+        <!-- Polyglot SDK API -->
         <dependency>
             <groupId>org.graalvm.sdk</groupId>
             <artifactId>graal-sdk</artifactId>
@@ -92,7 +93,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco-maven-plugin.version}</version>
+                <version>${jacoco.version}</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -100,7 +101,6 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-
                     <execution>
                         <id>report</id>
                         <phase>verify</phase>
@@ -114,7 +114,7 @@
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>${spotless-maven-plugin.version}</version>
+                <version>${spotless.version}</version>
                 <configuration>
                     <java>
                         <importOrder/>

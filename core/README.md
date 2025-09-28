@@ -25,12 +25,12 @@ polyglot-adapter-core is a lightweight Java library that provides a unified, hig
 ---
 
 ## Modules and main types
-- `io.github.ih0r.adapter.api.PolyglotAdapter`: High-level facade
+- `io.github.ih0rd.adapter.api.PolyglotAdapter`: High-level facade
 - `io.github.ih0rd.adapter.api.executors.PyExecutor`: Internal Python executor (GraalPy)
-- `io.github.ih0r.adapter.api.executors.BaseExecutor`: Contract for executors
-- `io.github.ih0r.adapter.api.context.PolyglotContextFactory`: Builder for `org.graalvm.polyglot.Context`
-- `io.github.ih0r.adapter.api.context.Language`: Enum for supported languages
-- `io.github.ih0r.adapter.api.context.ResourcesProvider`: Centralized resolver for per-language resource paths
+- `io.github.ih0rd.adapter.api.executors.BaseExecutor`: Contract for executors
+- `io.github.ih0rd.adapter.api.context.PolyglotContextFactory`: Builder for `org.graalvm.polyglot.Context`
+- `io.github.ih0rd.adapter.api.context.Language`: Enum for supported languages
+- `io.github.ih0rd.adapter.api.context.ResourcesProvider`: Centralized resolver for per-language resource paths
 - Utilities: `CommonUtils`, `StringCaseConverter`
 - Exceptions: `EvaluationException`
 
@@ -59,7 +59,7 @@ polyglot-adapter-core is a lightweight Java library that provides a unified, hig
 
 ### Default Python adapter
 ```java
-import io.github.ih0r.adapter.api.PolyglotAdapter;
+import io.github.ih0rd.adapter.api.PolyglotAdapter;
 import java.util.Map;
 
 public class DemoDefault {
@@ -74,9 +74,9 @@ public class DemoDefault {
 
 ### Custom context configuration
 ```java
-import io.github.ih0r.adapter.api.PolyglotAdapter;
-import io.github.ih0r.adapter.api.context.Language;
-import io.github.ih0r.adapter.api.context.PolyglotContextFactory;
+import io.github.ih0rd.adapter.api.PolyglotAdapter;
+import io.github.ih0rd.adapter.api.context.Language;
+import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 
 public class DemoCustom {
     void main() {
@@ -93,8 +93,8 @@ public class DemoCustom {
 
 ### Generic executor (future-proof)
 ```java
-import io.github.ih0r.adapter.api.PolyglotAdapter;
-import io.github.ih0r.adapter.api.executors.BaseExecutor;
+import io.github.ih0rd.adapter.api.PolyglotAdapter;
+import io.github.ih0rd.adapter.api.executors.BaseExecutor;
 
 public class DemoGeneric {
     void main() {

@@ -11,8 +11,8 @@ public interface Constants {
   // -----------------------------
   // System property keys
   // -----------------------------
-  String PROP_PY_RESOURCES = "polyglot.py-resources.path";
-  String PROP_JS_RESOURCES = "polyglot.js-resources.path";
+  String PROP_PY_RESOURCES = "py.polyglot-resources.path";
+  String PROP_JS_RESOURCES = "js.polyglot-resources.path";
 
   // -----------------------------
   // Base project dir

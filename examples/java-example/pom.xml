@@ -3,19 +3,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>java-example</artifactId>
+    <groupId>io.github.ih0rd</groupId>
+    <artifactId>polyglot-java-example</artifactId>
+    <version>0.0.1</version>
     <packaging>jar</packaging>
+    <properties>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+    </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.github.ih0rd</groupId>
             <artifactId>polyglot-adapter-core</artifactId>
-            <version>${project.version}</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <version>5.13.4</version>
+            <scope>test</scope>
         </dependency>
-
     </dependencies>
+
 </project>
