@@ -116,6 +116,14 @@ polyglot-adapter is a lightweight Java library that provides a unified, high-lev
 
 ---
 
+## Examples
+
+You can find working usage samples in the [examples](./examples) directory.  
+Currently available:
+
+- [Java Example](./examples/java-example) — demonstrates Python integration with GraalPy and the `PolyglotAdapter`.
+
+
 ## References
 - https://www.graalvm.org/
 - https://www.graalvm.org/python/
