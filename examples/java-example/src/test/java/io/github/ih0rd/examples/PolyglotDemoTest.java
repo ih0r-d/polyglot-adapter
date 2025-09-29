@@ -3,6 +3,7 @@ package io.github.ih0rd.examples;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.ih0rd.adapter.api.PolyglotAdapter;
+import io.github.ih0rd.examples.contracts.MyApi;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
