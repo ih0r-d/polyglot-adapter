@@ -8,6 +8,31 @@
     <version>0.0.1</version>
     <packaging>jar</packaging>
     <name>polyglot-adapter</name>
+    <description>Lightweight Java SDK for executing polyglot code via GraalVM (Python first)</description>
+    <url>https://github.com/ih0rd/polyglot-adapter</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/ih0rd/polyglot-adapter.git</connection>
+        <developerConnection>scm:git:ssh://github.com:ih0rd/polyglot-adapter.git</developerConnection>
+        <url>https://github.com/ih0rd/polyglot-adapter</url>
+        <tag>HEAD</tag>
+
+    </scm>
+
+    <developers>
+        <developer>
+            <id>ih0rd</id>
+            <name>Ihor Didyk</name>
+            <url>https://github.com/ih0rd</url>
+        </developer>
+    </developers>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
