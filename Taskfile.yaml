@@ -11,31 +11,77 @@ vars:
 tasks:
   clean:
     desc: Clean target and python resources
+    silent: true
     cmds:
       - rm -rf python-resources
       - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean
 
   build:
     desc: Build project
+    silent: true
     cmds:
       - rm -rf python-resources
       - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean package
 
   test:
     desc: Run tests
+    silent: true
     cmds:
       - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw test
 
   verify:
     desc: Run tests and Checkstyle
+    silent: true
     cmds:
       - task: test
       - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw checkstyle:check
 
+  release:
+    desc: Release (set version, tag, bump snapshot)
+    silent: true
+    vars:
+      VERSION: { sh: 'echo ${VERSION:-}' }
+    cmds:
+      - |
+        if [ -z "{{.VERSION}}" ]; then
+          echo "❌ VERSION is required. Run with: task release VERSION=1.2.3"
+          exit 1
+        fi
+        chmod +x ./scripts/release.sh
+        ./scripts/release.sh {{.VERSION}}
+
+  bump:
+    desc: Bump project version (patch|minor|major) -> -SNAPSHOT
+    silent: true
+    vars:
+      TYPE: { sh: 'echo ${TYPE:-patch}' }
+    cmds:
+      - chmod +x ./scripts/bump.sh
+      - ./scripts/bump.sh {{.TYPE}}
+
+  format:
+    desc: Code format (spotless) quiet
+    silent: true
+    cmds:
+      - chmod +x ./scripts/format.sh
+      - ./scripts/format.sh
+
+  clean-remote-tags:
+    desc: Delete remote tags that don't exist locally
+    silent: true
+    cmds:
+      - chmod +x ./scripts/clean-remote-tags.sh
+      - ./scripts/clean-remote-tags.sh
+
+  version:
+    desc: Show current project version
+    silent: true
+    cmds:
+      - ./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout 2>/dev/null | tr -d '\r' | grep -E '^[0-9]'
+
   default:
-    desc: Default task (clean + build + test)
-
-
+    desc: Default task (clean + build)
+    silent: true
     cmds:
       - task: clean
       - task: build
