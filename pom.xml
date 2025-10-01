@@ -5,7 +5,7 @@
 
     <groupId>io.github.ih0rd</groupId>
     <artifactId>polyglot-adapter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>polyglot-adapter</name>
     <description>Lightweight Java SDK for executing polyglot code via GraalVM (Python first)</description>
