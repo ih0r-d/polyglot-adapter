@@ -184,6 +184,31 @@ They can be safely ignored, or you can suppress them with JVM flags:
 --add-opens java.base/jdk.internal.misc=ALL-UNNAMED --enable-native-access=ALL-UNNAMED
 ```
 
+## 🧩 Common GraalPy / GraalVM Issues
+
+| **Error / Warning**                                             | **Cause**                                                                                   | **How to Fix / Notes**                                                                                       |
+|-----------------------------------------------------------------|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| `NameError: name '__file__' is not defined`                     | GraalPy doesn’t define `__file__` when evaluating inline sources.                           | Before `context.eval(...)`, set: `context.getBindings("python").putMember("__file__", "path/to/script.py");` |
+| `ModuleNotFoundError: No module named 'requests'`               | The GraalPy venv hasn’t been created or packages weren’t installed.                         | Run:<br>`mvn graalpy:process-graalpy-resources`<br>or simply<br>`mvn clean package`                          |
+| `python.Executable not found`                                   | Plugin couldn’t locate the GraalPy binary in venv.                                          | Check `python-resources/venv/bin/graalpy` exists or adjust `python.external.dir` property.                   |
+| `EvaluationException: Method <name> is not supported`           | The Java interface method doesn’t match Python implementation (missing or wrong signature). | Ensure both names and argument counts align between Java and Python.                                         |
+| `WARNING: sun.misc.Unsafe::objectFieldOffset`                   | GraalVM’s Truffle runtime uses deprecated JDK internals.                                    | Safe to ignore.<br>To silence: `--add-opens=java.base/sun.misc=ALL-UNNAMED`                                  |
+| `WARNING: java.lang.System::load has been called`               | Restricted native access warning under GraalVM 25+.                                         | Safe to ignore.<br>Add JVM flag: `--enable-native-access=ALL-UNNAMED`                                        |
+| `IOAccess denied`                                               | Polyglot context lacks permission for file or I/O access.                                   | In `PolyglotContextFactory`, enable: `.allowIO(IOAccess.ALL)`                                                |
+| `Lock file not created`                                         | The `graalpy:lock-packages` goal wasn’t executed.                                           | Run:<br>`mvn graalpy:lock-packages@lock-python-packages`                                                     |
+| `venv missing`                                                  | Plugin didn’t generate Python virtual environment.                                          | Ensure `generate-resources` phase ran, or run:<br>`mvn process-resources`                                    |
+| `UnsupportedLanguageException: No language for id python found` | GraalVM Python not installed.                                                               | Install with:<br>`gu install python`                                                                         |
+| `ClassCastException` during evaluation                          | Returned Python value doesn’t match Java interface type.                                    | Adjust Java method signature or wrap return value in compatible type.                                        |
+
+---
+
+✅ **Tips**
+- Always ensure **GraalVM ≥ 25.0.0** is used.
+- Use `-Dpython.external.dir=<abs-path>` to override venv location.
+- For debugging: enable verbose plugin logs via `-X`.
+- Warnings starting with `WARNING:` are *harmless* unless they block execution.
+
+
 ---
 
 ## 10. License

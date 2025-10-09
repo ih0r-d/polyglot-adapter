@@ -1,5 +1,6 @@
 package io.github.ih0rd.adapter.utils;
 
+import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -44,23 +45,17 @@ public final class CommonUtils {
    *
    * @throws EvaluationException if reflection fails or the method cannot be invoked
    */
-  public static <T> Map<String, Object> invokeMethod(
-      Class<T> targetType, T targetInstance, String methodName, Object... args) {
-    try {
-      Method method = getMethodByName(targetType, methodName);
-
-      Object[] adjustedArgs = coerceArguments(method.getParameterTypes(), args);
-      Object invoke = method.invoke(targetInstance, adjustedArgs);
-
-      return Map.of(
-          "returnType",
-          method.getReturnType().getCanonicalName(),
-          "result",
-          invoke != null ? invoke : Optional.empty());
-    } catch (Exception e) {
-      throw new EvaluationException("Could not invoke method '" + methodName + "'", e);
-    }
+  public static <T> EvalResult<?> invokeMethod(
+          Class<T> targetType, T targetInstance, String methodName, Object... args) {
+      try {
+          Method method = getMethodByName(targetType, methodName);
+          Object result = method.invoke(targetInstance, coerceArguments(method.getParameterTypes(), args));
+          return EvalResult.of(result);
+      } catch (Exception e) {
+          throw new EvaluationException("Could not invoke method '%s'".formatted(methodName), e);
+      }
   }
+
 
   private static <T> Method getMethodByName(Class<T> targetType, String methodName)
       throws NoSuchMethodException {

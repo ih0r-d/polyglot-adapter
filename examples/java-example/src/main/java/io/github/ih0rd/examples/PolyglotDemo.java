@@ -1,14 +1,12 @@
 package io.github.ih0rd.examples;
 
 import io.github.ih0rd.adapter.api.PolyglotAdapter;
+import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.api.executors.PyExecutor;
 import io.github.ih0rd.examples.contracts.LibrariesApi;
 import io.github.ih0rd.examples.contracts.MyApi;
-import org.graalvm.polyglot.Context;
-
-import java.util.Map;
 
 import static java.lang.IO.println;
 
@@ -17,16 +15,16 @@ import static java.lang.IO.println;
  * Shows two use cases:
  * 1. Default resources (src/main/python)
  * 2. Custom resources path via System property
+ * 3. Override context builder with change default values
  */
 public class PolyglotDemo {
 
     private static final String PROJECT_DIR = System.getProperty("user.dir");
-    private static final String PY_EXTERNAL_DIR = System.getProperty("python.external.dir");
     private static final String PY_RESOURCES_KEY = "py.polyglot-resources.path";
     private static final String PY_RESOURCES = "/examples/java-example/src/main/resources/python";
 
     void main() {
-        println("=== Running with DEFAULT resources ===");
+//        println("=== Running with DEFAULT resources ===");
 //        runWithDefaultResources();
 //
 //        System.out.println("\n=== Running with CUSTOM resources ===");
@@ -66,25 +64,24 @@ public class PolyglotDemo {
     private static void runWithCustomAdapter(){
         PolyglotContextFactory.Builder ctx = new PolyglotContextFactory.Builder(Language.PYTHON).allowExperimentalOptions(true);
         try (var executor = PyExecutor.create(ctx); var adapter = PolyglotAdapter.of(executor)) {
-            Map<String, Object> genUsers = adapter.evaluate("genUsers", LibrariesApi.class, 5);
-
+            var genUsers = adapter.evaluate("genUsers", LibrariesApi.class, 5);
             println("gen_users = " + genUsers);
             println("\n".repeat(3));
-            Map<String, Object> formatUsers = adapter.evaluate("formatUsers", LibrariesApi.class, 5);
+            var formatUsers = adapter.evaluate("formatUsers", LibrariesApi.class, 5);
             println("formatUsers = " + formatUsers);
             println("\n".repeat(3));
-            Map<String, Object> fakeParagraphs = adapter.evaluate("fakeParagraphs", LibrariesApi.class, 5);
+            var fakeParagraphs = adapter.evaluate("fakeParagraphs", LibrariesApi.class, 5);
             println("fakeParagraphs = " + fakeParagraphs);
         }
     }
 
     private static void evaluateAddMethod(PolyglotAdapter adapter) {
-        Map<String, Object> addMap = adapter.evaluate("add", MyApi.class, 10, 20);
+        var addMap = adapter.evaluate("add", MyApi.class, 10, 20);
         println("Result (add): " + addMap);
     }
 
     private static void evaluatePingMethod(PolyglotAdapter adapter) {
-        Map<String, Object> pingMap = adapter.evaluate("ping", MyApi.class);
+        var pingMap = adapter.evaluate("ping", MyApi.class);
         println("Result (ping): " + pingMap);
     }
 

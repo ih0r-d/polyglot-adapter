@@ -4,6 +4,7 @@ import static io.github.ih0rd.adapter.utils.CommonUtils.*;
 import static io.github.ih0rd.adapter.utils.Constants.PYTHON;
 import static io.github.ih0rd.adapter.utils.StringCaseConverter.camelToSnake;
 
+import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
 
 /**
  * Executor for Python classes via GraalPy. Loads sources from either classpath (resources/python)
@@ -35,14 +37,14 @@ public record PyExecutor(Context context, Path resourcesPath) implements BaseExe
   }
 
   @Override
-  public <T> Map<String, Object> evaluate(
+  public <T> EvalResult<?> evaluate(
       String methodName, Class<T> memberTargetType, Object... args) {
     var type = mapValue(memberTargetType, methodName);
     return invokeMethod(memberTargetType, type, methodName, args);
   }
 
   @Override
-  public <T> Map<String, Object> evaluate(String methodName, Class<T> memberTargetType) {
+  public <T> EvalResult<?> evaluate(String methodName, Class<T> memberTargetType) {
     var type = mapValue(memberTargetType, methodName);
     return invokeMethod(memberTargetType, type, methodName);
   }
@@ -50,6 +52,7 @@ public record PyExecutor(Context context, Path resourcesPath) implements BaseExe
   private <T> T mapValue(Class<T> memberTargetType, String methodName) {
     var source = getFileSource(memberTargetType);
     context.eval(source);
+
 
     var polyglotBindings = context.getPolyglotBindings();
     var pyClass = getFirstElement(polyglotBindings.getMemberKeys());

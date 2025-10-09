@@ -13,16 +13,16 @@ class PolyglotDemoTest {
     @Test
     void testAdd() {
         try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
-            Map<String, Object> result = adapter.evaluate("add", MyApi.class, 2, 5);
-            assertEquals(7, result.get("result"));
+            var result = adapter.evaluate("add", MyApi.class, 2, 5);
+            assertEquals(7, result.value());
         }
     }
 
     @Test
     void testPing() {
         try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
-            Map<String, Object> result = adapter.evaluate("ping", MyApi.class);
-            assertTrue(result.containsKey("result"));
+            var result = adapter.evaluate("ping", MyApi.class);
+            assertEquals("pong", result.value());
         }
     }
 }

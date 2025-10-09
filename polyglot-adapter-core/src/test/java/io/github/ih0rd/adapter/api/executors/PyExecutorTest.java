@@ -56,9 +56,9 @@ class PyExecutorTest {
     var builder = new PolyglotContextFactory.Builder(Language.PYTHON).resourcesPath(tempDir);
 
     try (PyExecutor exec = PyExecutor.create(builder)) {
-      Map<String, Object> result = exec.evaluate("add", MyApi.class, 2, 3);
-      assertEquals("int", result.get("returnType"));
-      assertEquals(5, result.get("result"));
+      var result = exec.evaluate("add", MyApi.class, 2, 3);
+      assertEquals("int", result.type());
+      assertEquals(5, result.value());
     }
   }
 
@@ -67,9 +67,9 @@ class PyExecutorTest {
     var builder = new PolyglotContextFactory.Builder(Language.PYTHON).resourcesPath(tempDir);
 
     try (PyExecutor exec = PyExecutor.create(builder)) {
-      Map<String, Object> result = exec.evaluate("ping", MyApi.class);
-      assertEquals("void", result.get("returnType"));
-      assertEquals(Optional.empty(), result.get("result"));
+      var result = exec.evaluate("ping", MyApi.class);
+      assertEquals("void", result.type());
+      assertEquals(Optional.empty(), result.value());
     }
   }
 

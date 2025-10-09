@@ -2,6 +2,7 @@ package io.github.ih0rd.adapter.api;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.api.executors.BaseExecutor;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,20 +17,20 @@ class PolyglotAdapterTest {
     Object[] lastArgs;
 
     @Override
-    public <T> Map<String, Object> evaluate(
+    public <T> EvalResult<?> evaluate(
         String methodName, Class<T> memberTargetType, Object... args) {
       this.lastMethod = methodName;
       this.lastType = memberTargetType;
       this.lastArgs = args;
-      return Map.of("ok", true);
+      return  EvalResult.of("ok");
     }
 
     @Override
-    public <T> Map<String, Object> evaluate(String methodName, Class<T> memberTargetType) {
+    public <T> EvalResult<?> evaluate(String methodName, Class<T> memberTargetType) {
       this.lastMethod = methodName;
       this.lastType = memberTargetType;
       this.lastArgs = new Object[0];
-      return Map.of("ok", true);
+      return EvalResult.of("ok");
     }
 
     @Override
@@ -47,13 +48,13 @@ class PolyglotAdapterTest {
     FakeExecutor exec = new FakeExecutor();
     try (PolyglotAdapter adapter = PolyglotAdapter.of(exec)) {
       var r1 = adapter.evaluate("sum", MyApi.class, 1, 2);
-      assertEquals(Boolean.TRUE, r1.get("ok"));
+      assertEquals(Boolean.TRUE, r1.value());
       assertEquals("sum", exec.lastMethod);
       assertEquals(MyApi.class, exec.lastType);
       assertArrayEquals(new Object[] {1, 2}, exec.lastArgs);
 
       var r2 = adapter.evaluate("ping", MyApi.class);
-      assertEquals(Boolean.TRUE, r2.get("ok"));
+      assertEquals(Boolean.TRUE, r2.value());
       assertEquals("ping", exec.lastMethod);
       assertEquals(MyApi.class, exec.lastType);
       assertArrayEquals(new Object[] {}, exec.lastArgs);

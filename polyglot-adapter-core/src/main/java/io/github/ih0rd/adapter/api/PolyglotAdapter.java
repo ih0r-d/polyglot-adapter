@@ -1,5 +1,6 @@
 package io.github.ih0rd.adapter.api;
 
+import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.api.executors.BaseExecutor;
 import io.github.ih0rd.adapter.api.executors.PyExecutor;
@@ -31,13 +32,13 @@ public record PolyglotAdapter(BaseExecutor executor) implements AutoCloseable {
   }
 
   /** Evaluate method with arguments. */
-  public <T> Map<String, Object> evaluate(
+  public <T>EvalResult<?> evaluate(
       String methodName, Class<T> memberTargetType, Object... args) {
     return executor.evaluate(methodName, memberTargetType, args);
   }
 
   /** Evaluate method without arguments. */
-  public <T> Map<String, Object> evaluate(String methodName, Class<T> memberTargetType) {
+  public <T> EvalResult<?> evaluate(String methodName, Class<T> memberTargetType) {
     return executor.evaluate(methodName, memberTargetType);
   }
 
