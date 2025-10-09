@@ -6,7 +6,7 @@
 
     <groupId>io.github.ih0rd</groupId>
     <artifactId>polyglot-adapter-parent</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>polyglot-adapter-parent</name>
