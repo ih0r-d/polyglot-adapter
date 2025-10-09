@@ -12,7 +12,7 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-.mvn/timing.properties
+polyglot-adapter-core/.mvn/timing.properties
 
 # IntelliJ IDEA
 .idea/

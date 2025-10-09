@@ -1,8 +1,12 @@
 package io.github.ih0rd.examples;
 
 import io.github.ih0rd.adapter.api.PolyglotAdapter;
+import io.github.ih0rd.adapter.api.context.Language;
+import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
+import io.github.ih0rd.adapter.api.executors.PyExecutor;
 import io.github.ih0rd.examples.contracts.LibrariesApi;
 import io.github.ih0rd.examples.contracts.MyApi;
+import org.graalvm.polyglot.Context;
 
 import java.util.Map;
 
@@ -11,33 +15,40 @@ import static java.lang.IO.println;
 /**
  * Demo app for PolyglotAdapter.
  * Shows two use cases:
- *  1. Default resources (src/main/python)
- *  2. Custom resources path via System property
+ * 1. Default resources (src/main/python)
+ * 2. Custom resources path via System property
  */
 public class PolyglotDemo {
 
-    private static final String PROJECT_DIR =  System.getProperty("user.dir");
+    private static final String PROJECT_DIR = System.getProperty("user.dir");
+    private static final String PY_EXTERNAL_DIR = System.getProperty("python.external.dir");
     private static final String PY_RESOURCES_KEY = "py.polyglot-resources.path";
     private static final String PY_RESOURCES = "/examples/java-example/src/main/resources/python";
 
     void main() {
         println("=== Running with DEFAULT resources ===");
-        runWithDefaultResources();
+//        runWithDefaultResources();
+//
+//        System.out.println("\n=== Running with CUSTOM resources ===");
+//        runWithCustomResources();
 
-        System.out.println("\n=== Running with CUSTOM resources ===");
-        runWithCustomResources();
+        System.out.println("\n=== Running with CUSTOM adapter ===");
+        runWithCustomAdapter();
     }
 
-    /** Case 1: uses default resources path from Constants.DEFAULT_PY_RESOURCES */
+    /**
+     * Case 1: uses default resources path from Constants.DEFAULT_PY_RESOURCES
+     */
     private static void runWithDefaultResources() {
         try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
             evaluateAddMethod(adapter);
             evaluatePingMethod(adapter);
-            evaluateGetUserMethod(adapter,1);
         }
     }
 
-    /** Case 2: override Python resources path with system property */
+    /**
+     * Case 2: override Python resources path with system property
+     */
     private static void runWithCustomResources() {
         String customPath = PROJECT_DIR + PY_RESOURCES;
         System.setProperty(PY_RESOURCES_KEY, customPath);
@@ -46,7 +57,24 @@ public class PolyglotDemo {
             evaluateAddMethod(adapter);
             evaluatePingMethod(adapter);
 
-            evaluateGetUserMethod(adapter,1);
+        }
+    }
+
+    /**
+     * Case 3: override context builder with change default values
+     */
+    private static void runWithCustomAdapter(){
+        PolyglotContextFactory.Builder ctx = new PolyglotContextFactory.Builder(Language.PYTHON).allowExperimentalOptions(true);
+        try (var executor = PyExecutor.create(ctx); var adapter = PolyglotAdapter.of(executor)) {
+            Map<String, Object> genUsers = adapter.evaluate("genUsers", LibrariesApi.class, 5);
+
+            println("gen_users = " + genUsers);
+            println("\n".repeat(3));
+            Map<String, Object> formatUsers = adapter.evaluate("formatUsers", LibrariesApi.class, 5);
+            println("formatUsers = " + formatUsers);
+            println("\n".repeat(3));
+            Map<String, Object> fakeParagraphs = adapter.evaluate("fakeParagraphs", LibrariesApi.class, 5);
+            println("fakeParagraphs = " + fakeParagraphs);
         }
     }
 
@@ -60,8 +88,4 @@ public class PolyglotDemo {
         println("Result (ping): " + pingMap);
     }
 
-    private static void evaluateGetUserMethod(PolyglotAdapter adapter, int userId) {
-        Map<String, Object> getUserMap = adapter.evaluate("get_user", LibrariesApi.class, userId);
-        println("Result (get_user): " + getUserMap);
-    }
 }

@@ -1,87 +1,147 @@
-# Java Example for Polyglot Adapter
 
-This module demonstrates how to use **polyglot-adapter-core** with Python code (via GraalPy).
+# Polyglot Java Example (GraalPy + Polyglot Adapter)
+
+This repository demonstrates how to use **GraalPy Maven Plugin (v25.0.0)** together with **polyglot-adapter-core** to execute Python code from Java through GraalVM.
 
 ---
 
-## Project structure
+## 1. Overview
+
+The example shows how to:
+- Install and manage Python packages via the `graalpy-maven-plugin`.
+- Create a GraalPy virtual environment and lock dependencies.
+- Use the `PolyglotAdapter` SDK to call Python code from Java.
+
+---
+
+## 2. Project Structure
+
 ```
-examples/java-example
-├── README.md                # this file
-├── pom.xml                  # Maven configuration for the example
-├── mvnw*, .mvn              # Maven wrapper
-├── src
-│   ├── main
-│   │   ├── java/io/github/ih0rd/examples
-│   │   │   ├── MyApi.java         # Java interface definition
-│   │   │   └── PolyglotDemo.java  # Demo application
-│   │   ├── python/my_api.py       # Python sources (dev)
-│   │   └── resources/python/      # Packaged Python resources
+polyglot-java-example/
+├── pom.xml
+├── graalpy.lock
+├── python-resources/
+│   ├── venv/
+│   └── requirements.lock
+├── src/
+│   ├── main/
+│   │   ├── java/io/github/ih0rd/examples/
+│   │   │   ├── PolyglotDemo.java
+│   │   │   └── contracts/
+│   │   │       ├── LibrariesApi.java
+│   │   │       └── MyApi.java
+│   │   ├── python/my_api.py
+│   │   └── resources/python/
+│   │       ├── libraries_api.py
 │   │       └── my_api.py
-│   └── test/java/io/github/ih0rd/examples
-│       └── HelloPolyglotTest.java # Example JUnit test
-└── python/my_api.py         # Extra Python copy for convenience
+│   └── test/java/io/github/ih0rd/examples/
+│       └── PolyglotDemoTest.java
+└── README.md
 ```
-
 
 ---
 
-## Quick start
+## 3. GraalPy Maven Plugin Configuration
 
-### Default Python adapter
+```xml
+<properties>
+  <python.package.1>requests==2.32.3</python.package.1>
+  <python.package.2>rich==13.9.2</python.package.2>
+</properties>
+
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.graalvm.python</groupId>
+      <artifactId>graalpy-maven-plugin</artifactId>
+      <version>25.0.0</version>
+      <configuration>
+        <packages>
+          <package>${python.package.1}</package>
+          <package>${python.package.2}</package>
+        </packages>
+      </configuration>
+      <executions>
+        <execution>
+          <id>generate-python-resources</id>
+          <phase>generate-resources</phase>
+          <goals>
+            <goal>process-graalpy-resources</goal>
+          </goals>
+        </execution>
+        <execution>
+          <id>lock-python-packages</id>
+          <goals>
+            <goal>lock-packages</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+```
+
+---
+
+## 4. Building and Installing Python Packages
+
+```bash
+mvn clean package   -Dpython.package.1=requests==2.32.3   -Dpython.package.2=rich==13.9.2
+```
+
+**Result:**
+- Virtual environment created in ` target/classes/org.graalvm.python.vfs/venv`  
+- Packages installed: `requests`, `rich`  
+- Lock file generated: `graalpy.lock`
+
+---
+
+## 5. Verifying Installed Packages
+
+```bash
+target/classes/org.graalvm.python.vfs/venv/bin/graalpy -m pip list
+```
+**Expected output:**
+```
+Package         Version
+--------------- -----------
+Faker           26.0.0
+pip             24.3.1
+python-dateutil 2.9.0.post0
+six             1.17.0
+tabulate        0.9.0
+```
+
+---
+
+## 6. Running the Polyglot Demo
+
+### Example Java Code
 ```java
 import io.github.ih0rd.adapter.api.PolyglotAdapter;
-import java.util.Map;
+import io.github.ih0rd.examples.contracts.MyApi;
 
-public class DemoDefault {
+public class PolyglotDemo {
     void main() {
         try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
-            Map<String, Object> result = adapter.evaluate("add", MyApi.class, 1, 2);
-            System.out.println(result);
+            var result = adapter.evaluate("add", MyApi.class, 2, 3);
+            System.out.println("Result: " + result);
         }
     }
 }
 ```
 
-### Custom context configuration
-```java
-import io.github.ih0rd.adapter.api.PolyglotAdapter;
-import io.github.ih0rd.adapter.api.context.Language;
-import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
-
-public class DemoCustom {
-    void main() {
-        var builder = new PolyglotContextFactory.Builder(Language.PYTHON)
-                .allowExperimentalOptions(true)
-                .allowAllAccess(true);
-
-        try (PolyglotAdapter adapter = PolyglotAdapter.python(builder)) {
-            adapter.evaluate("ping", MyApi.class);
-        }
-    }
-}
-```
-
-### Generic executor (future-proof)
-```java
-import io.github.ih0rd.adapter.api.PolyglotAdapter;
-import io.github.ih0rd.adapter.api.executors.BaseExecutor;
-
-public class DemoGeneric {
-    void main() {
-        BaseExecutor exec = /* provide your executor instance */ null;
-        try (PolyglotAdapter adapter = PolyglotAdapter.of(exec)) {
-            adapter.evaluate("my_method", MyApi.class);
-        }
-    }
-}
+### Build and Run
+```bash
+./mvnw clean package
+./mvnw exec:java -Dexec.mainClass="io.github.ih0rd.examples.PolyglotDemo"
 ```
 
 ---
 
-## Defining your Python API
+## 7. Python API Definition
 
-### Java interface
+**Java interface:**
 ```java
 public interface MyApi {
     int add(int a, int b);
@@ -89,53 +149,44 @@ public interface MyApi {
 }
 ```
 
-### Python implementation
-File: `src/main/resources/python/my_api.py`
+**Python implementation:** (`src/main/resources/python/my_api.py`)
 ```python
 class MyApi:
     def add(self, a: int, b: int) -> int:
         return a + b
 
     def ping(self) -> None:
-        pass
+        print("pong")
 ```
 
-
 ---
 
-## Running the demo
+## 8. Notes
 
-Build and run from this directory:
-
-```bash
-./mvnw clean package
-./mvnw exec:java -Dexec.mainClass="io.github.ih0rd.examples.PolyglotDemo"
-```
-
-Or use the provided **Taskfile** in the project root.
-
----
-
-## Key parts
-
-- **`MyApi.java`**  
-  Java interface that defines methods (`add`, `ping`) expected to be implemented in Python.
-
-- **`my_api.py`**  
-  Python class with the same name implementing those methods.
-
-- **`PolyglotDemo.java`**  
-  Shows how to load and run the Python class via `PolyglotAdapter`.
-
-- **`PolyglotDemoTest.java`**  
-  Simple JUnit test validating the adapter usage.
-
----
-
-## Notes
-
-- Requires **GraalVM 25+** with Python installed:
+- Requires **GraalVM 25+** with Python installed:  
   ```bash
   gu install python
   ```
-- Uses `polyglot-adapter-core` from the parent project.  
+
+- No need for `pythonHome` configuration — GraalPy 25.0.0 handles venv automatically.  
+- The project uses **polyglot-adapter-core** SDK to execute Python seamlessly via GraalVM.
+
+---
+
+## 9. Troubleshooting
+
+If you see warnings like:
+```
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called ...
+```
+They can be safely ignored, or you can suppress them with JVM flags:
+```bash
+--add-opens java.base/jdk.internal.misc=ALL-UNNAMED --enable-native-access=ALL-UNNAMED
+```
+
+---
+
+## 10. License
+
+Apache License 2.0  
+© 2025 ih0rd

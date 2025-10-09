@@ -64,15 +64,15 @@ public final class CommonUtils {
 
   private static <T> Method getMethodByName(Class<T> targetType, String methodName)
       throws NoSuchMethodException {
-    Class<?>[] parameterTypes = getParameterTypesByMethodName(targetType, methodName);
-    return targetType.getMethod(methodName, parameterTypes);
+      Class<?>[] parameterTypes = getParameterTypesByMethodName(targetType, methodName);
+      return targetType.getMethod(methodName, parameterTypes);
   }
 
   private static <T> Class<?>[] getParameterTypesByMethodName(
       Class<T> targetType, String methodName) {
     return Arrays.stream(targetType.getDeclaredMethods())
-        .filter(method -> method.getName().equals(methodName))
-        .findFirst()
+            .filter(method -> method.getName().equals(methodName))
+            .findFirst()
         .map(Method::getParameterTypes)
         .orElseThrow(() -> new EvaluationException("Method '" + methodName + "' not found"));
   }

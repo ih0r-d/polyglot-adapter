@@ -1,15 +1,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.ih0rd</groupId>
-    <artifactId>polyglot-adapter</artifactId>
+    <artifactId>polyglot-adapter-parent</artifactId>
     <version>0.0.3-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <name>polyglot-adapter</name>
-    <description>Lightweight Java SDK for executing polyglot code via GraalVM (Python first)</description>
-    <url>https://github.com/ih0rd/polyglot-adapter</url>
+    <packaging>pom</packaging>
+
+    <name>polyglot-adapter-parent</name>
+    <description>Parent POM aggregating core, plugin, and BOM modules</description>
+
+    <modules>
+        <module>polyglot-adapter-bom</module>
+        <module>polyglot-adapter-core</module>
+    </modules>
 
     <licenses>
         <license>
@@ -19,161 +25,22 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/ih0rd/polyglot-adapter.git</connection>
-        <developerConnection>scm:git:ssh://github.com:ih0rd/polyglot-adapter.git</developerConnection>
-        <url>https://github.com/ih0rd/polyglot-adapter</url>
+        <connection>scm:git:git://github.com/ih0r-d/polyglot-adapter.git</connection>
+        <developerConnection>scm:git:ssh://github.com:ih0r-d/polyglot-adapter.git</developerConnection>
+        <url>https://github.com/ih0r-d/polyglot-adapter</url>
         <tag>HEAD</tag>
-
     </scm>
 
     <developers>
         <developer>
             <id>ih0rd</id>
             <name>Ihor Didyk</name>
-            <url>https://github.com/ih0rd</url>
+            <url>https://github.com/ih0r-d</url>
         </developer>
     </developers>
 
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
-        <graal.version>25.0.0</graal.version>
-        <junit.version>5.10.0</junit.version>
-        <mockito.version>5.14.2</mockito.version>
-        <spotless.version>3.0.0</spotless.version>
-        <jacoco.version>0.8.13</jacoco.version>
-        <surefire.version>3.5.3</surefire.version>
-        <python.packages/>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>25</maven.compiler.release>
     </properties>
-
-    <dependencies>
-        <!-- GraalVM -->
-        <dependency>
-            <groupId>org.graalvm.sdk</groupId>
-            <artifactId>graal-sdk</artifactId>
-            <version>${graal.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.polyglot</groupId>
-            <artifactId>polyglot</artifactId>
-            <version>${graal.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.python</groupId>
-            <artifactId>python-launcher</artifactId>
-            <version>${graal.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.python</groupId>
-            <artifactId>python-embedding</artifactId>
-            <version>${graal.version}</version>
-        </dependency>
-
-        <!-- Tests -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.graalvm.python</groupId>
-                    <artifactId>graalpy-maven-plugin</artifactId>
-                    <version>${graal.version}</version>
-                    <executions>
-                        <execution>
-                            <id>generate-python-resources</id>
-                            <phase>generate-resources</phase>
-                            <goals>
-                                <goal>process-graalpy-resources</goal>
-                            </goals>
-                            <configuration>
-                                <packages>
-                                    <package>${python.packages}</package>
-                                </packages>
-                                <pythonResourcesDirectory>
-                                    ${project.basedir}/python-resources
-                                </pythonResourcesDirectory>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire.version}</version>
-                <configuration>
-                    <useModulePath>false</useModulePath>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.diffplug.spotless</groupId>
-                <artifactId>spotless-maven-plugin</artifactId>
-                <version>${spotless.version}</version>
-                <configuration>
-                    <java>
-                        <removeUnusedImports />
-                        <googleJavaFormat />
-                        <formatAnnotations />
-                    </java>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>spotless-apply</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>apply</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>spotless-check</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.version}</version>
-                <executions>
-                    <execution>
-                        <id>prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

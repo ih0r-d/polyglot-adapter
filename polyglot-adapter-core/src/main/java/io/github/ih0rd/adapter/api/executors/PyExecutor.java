@@ -2,11 +2,11 @@ package io.github.ih0rd.adapter.api.executors;
 
 import static io.github.ih0rd.adapter.utils.CommonUtils.*;
 import static io.github.ih0rd.adapter.utils.Constants.PYTHON;
+import static io.github.ih0rd.adapter.utils.StringCaseConverter.camelToSnake;
 
 import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
-import io.github.ih0rd.adapter.utils.StringCaseConverter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -82,7 +82,7 @@ public record PyExecutor(Context context, Path resourcesPath) implements BaseExe
   /** Resolve Python source file: check classpath first, then fallback to filesystem path. */
   private <T> Source getFileSource(Class<T> memberTargetType) {
     var interfaceName = memberTargetType.getSimpleName();
-    var pyFileName = StringCaseConverter.camelToSnake(interfaceName);
+    var pyFileName = camelToSnake(interfaceName);
     var resourcePath = "python/" + pyFileName + ".py";
     var cl = Thread.currentThread().getContextClassLoader();
 

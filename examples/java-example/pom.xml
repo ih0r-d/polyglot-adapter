@@ -1,32 +1,103 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.ih0rd</groupId>
+    <groupId>io.github.ih0rd.examples</groupId>
     <artifactId>polyglot-java-example</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
-    <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+    <name>polyglot-java-example</name>
+    <description>Example usage of Polyglot Adapter SDK</description>
 
-        <python.packages>requests</python.packages>
+    <properties>
+        <maven.compiler.release>25</maven.compiler.release>
+
+            <python.package.1>faker==26.0.0</python.package.1>
+            <python.package.2>tabulate==0.9.0</python.package.2>
+
     </properties>
 
 
+    <!-- Import only BOM to manage versions -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.github.ih0rd</groupId>
+                <artifactId>polyglot-adapter-bom</artifactId>
+                <version>0.0.3-SNAPSHOT</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <!-- Core SDK -->
         <dependency>
             <groupId>io.github.ih0rd</groupId>
-            <artifactId>polyglot-adapter</artifactId>
-            <version>0.0.1</version>
+            <artifactId>polyglot-adapter-core</artifactId>
         </dependency>
+
+        <!-- Test framework -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.13.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <useModulePath>false</useModulePath>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.graalvm.python</groupId>
+                <artifactId>graalpy-maven-plugin</artifactId>
+                <configuration>
+                    <packages>
+                        <package>${python.package.1}</package>
+                        <package>${python.package.2}</package>
+                    </packages>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>lock-python-packages</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>lock-packages</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>generate-python-resources</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>process-graalpy-resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+
+        </plugins>
+    </build>
+
 
 </project>

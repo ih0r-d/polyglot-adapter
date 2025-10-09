@@ -2,6 +2,14 @@ package io.github.ih0rd.examples.contracts;
 
 import java.util.Map;
 
+
+import java.util.List;
+
 public interface LibrariesApi {
-    Map<String, Object> get_user(int userId);
+
+    List<Map<String, Object>> genUsers(int n);
+
+    String formatUsers(int n);
+
+    String fakeParagraphs(int n);
 }
