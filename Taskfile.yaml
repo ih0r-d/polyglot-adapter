@@ -6,35 +6,42 @@ vars:
     --add-opens=java.base/java.lang=ALL-UNNAMED
     --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED
     -XX:+IgnoreUnrecognizedVMOptions
-    -XX:+SuppressUnsafeAccessWarnings
 
 tasks:
   clean:
     desc: Clean target and python resources
     silent: true
     cmds:
-      - rm -rf python-resources
-      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean
+      - echo "🧹 Cleaning project..."
+      - rm -rf python-resources target
+      - echo "🧩 Running Maven clean..."
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean -q 2>/dev/null
+      - echo "✅ Clean complete."
 
   build:
     desc: Build project
     silent: true
     cmds:
-      - rm -rf python-resources
-      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean package
+      - echo "🔧 Building project (skip tests)..."
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean package -q -DskipTests 2>/dev/null
+      - echo "📦 Build complete — check ./target"
 
   test:
     desc: Run tests
     silent: true
     cmds:
-      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw test
+      - echo "🧪 Running tests..."
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw test -q
+      - echo "✅ Tests done."
 
   verify:
     desc: Run tests and Checkstyle
     silent: true
     cmds:
+      - echo "🔍 Running tests + Checkstyle..."
       - task: test
-      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw checkstyle:check
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw checkstyle:check -q
+      - echo "✅ Verification complete."
 
   release:
     desc: Release (set version, tag, bump snapshot)
@@ -47,41 +54,51 @@ tasks:
           echo "❌ VERSION is required. Run with: task release VERSION=1.2.3"
           exit 1
         fi
+        echo "🚀 Releasing version {{.VERSION}}..."
         chmod +x ./scripts/release.sh
         ./scripts/release.sh {{.VERSION}}
+        echo "✅ Release {{.VERSION}} complete."
 
   bump:
-    desc: Bump project version (patch|minor|major) -> -SNAPSHOT
+    desc: Bump project version (patch|minor|major)
     silent: true
     vars:
       TYPE: { sh: 'echo ${TYPE:-patch}' }
     cmds:
+      - echo "⬆️  Bumping {{.TYPE}} version..."
       - chmod +x ./scripts/bump.sh
       - ./scripts/bump.sh {{.TYPE}}
+      - echo "✅ Version bumped."
 
   format:
-    desc: Code format (spotless) quiet
+    desc: Code format (spotless)
     silent: true
     cmds:
+      - echo "🎨 Formatting code..."
       - chmod +x ./scripts/format.sh
       - ./scripts/format.sh
+      - echo "✅ Format done."
 
   clean-remote-tags:
     desc: Delete remote tags that don't exist locally
     silent: true
     cmds:
+      - echo "🧨 Cleaning remote tags..."
       - chmod +x ./scripts/clean-remote-tags.sh
       - ./scripts/clean-remote-tags.sh
+      - echo "✅ Remote tags cleaned."
 
   version:
     desc: Show current project version
     silent: true
     cmds:
+      - echo "📦 Current version:"
       - ./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout 2>/dev/null | tr -d '\r' | grep -E '^[0-9]'
 
   default:
     desc: Default task (clean + build)
-    silent: true
+    silent: false
     cmds:
       - task: clean
       - task: build
+
