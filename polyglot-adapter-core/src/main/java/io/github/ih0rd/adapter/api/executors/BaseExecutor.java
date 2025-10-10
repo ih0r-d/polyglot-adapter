@@ -2,8 +2,6 @@ package io.github.ih0rd.adapter.api.executors;
 
 import io.github.ih0rd.adapter.api.context.EvalResult;
 
-import java.util.Map;
-
 /**
  * Base contract for all language executors (Python, JS, R, etc.). Not part of the public SDK API.
  */

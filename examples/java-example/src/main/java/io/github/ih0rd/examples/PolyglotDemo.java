@@ -4,6 +4,7 @@ import io.github.ih0rd.adapter.api.PolyglotAdapter;
 import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
+import io.github.ih0rd.adapter.api.executors.JsExecutor;
 import io.github.ih0rd.adapter.api.executors.PyExecutor;
 import io.github.ih0rd.examples.contracts.LibrariesApi;
 import io.github.ih0rd.examples.contracts.MyApi;
@@ -19,6 +20,7 @@ import java.util.List;
  *  3. Custom context configuration
  *  4. SimplexService integration
  *  5. Run pure python code
+ *  6. Run pure JS code
  */
 public class PolyglotDemo {
 
@@ -27,13 +29,14 @@ public class PolyglotDemo {
     private static final String PY_RESOURCES = "/examples/java-example/src/main/resources/python";
 
     void main() {
-        IO.println("🟢 [START] PolyglotAdapter Demo (GraalPy 25.x)\n");
+        IO.println("🟢 [START] PolyglotAdapter Demo (GraalPy & GraalJS 25.x)\n");
 
         runDefaultExample();
         runCustomResourcesExample();
         runCustomContextExample();
         runSimplexExample();
         runPythonCode();
+        runJsCode();
 
         IO.println("\n✅ [DONE] All examples executed successfully.");
     }
@@ -75,10 +78,7 @@ public class PolyglotDemo {
     private static void runCustomContextExample() {
         IO.println("\n=== [3] Custom Context Example ===");
 
-        var ctxBuilder = new PolyglotContextFactory.Builder(Language.PYTHON)
-                .allowExperimentalOptions(true)
-                .allowAllAccess(true)
-                .allowNativeAccess(true);
+        var ctxBuilder = languageBuilder(Language.PYTHON);
 
         try (var executor = PyExecutor.create(ctxBuilder);
              var adapter = PolyglotAdapter.of(executor)) {
@@ -129,23 +129,55 @@ public class PolyglotDemo {
     private static void runPythonCode(){
         IO.println("\n=== [5] Run native Python part  ===");
 
-        var ctxBuilder = new PolyglotContextFactory.Builder(Language.PYTHON)
-                .allowExperimentalOptions(true)
-                .allowAllAccess(true)
-                .allowNativeAccess(true);
+        var ctxBuilder = languageBuilder(Language.PYTHON);
 
         try (var executor = PyExecutor.create(ctxBuilder);
              var adapter = PolyglotAdapter.of(executor)) {
             EvalResult<?> result = adapter.evaluate("sum([i * i for i in range(5)])");
             IO.println("result → " + result);
-            int sum = result.as(Integer.class);
+            var sum = result.as(Double.class);
             IO.println("sum = " + sum);
         }
     }
 
     /** ───────────────────────────────
-     *  HELPER METHODS
+     *  CASE 6 — Run pure JS code
      *  ─────────────────────────────── */
+    private static void runJsCode(){
+        String jsCode = """
+        // Simple JavaScript example — array operations & function execution
+        function calculateStats(arr) {
+            const sum = arr.reduce((a, b) => a + b, 0);
+            const avg = sum / arr.length;
+            return { sum: sum, average: avg };
+        }
+        
+        const numbers = [2, 4, 6, 8, 10];
+        calculateStats(numbers);
+        """;
+
+        var jsBuilder = languageBuilder(Language.JS);
+        try (var executor = JsExecutor.create(jsBuilder);var adapter= PolyglotAdapter.of(executor)){
+            EvalResult<?> result = adapter.evaluate(jsCode);
+            IO.println("result → " + result);
+        }
+    }
+
+    /**
+     * ───────────────────────────────
+     * HELPER METHODS
+     * ───────────────────────────────
+     *
+     * @return
+     */
+
+    private static PolyglotContextFactory.Builder languageBuilder(Language lang){
+        return new PolyglotContextFactory.Builder(lang)
+                .allowExperimentalOptions(true)
+                .allowAllAccess(true)
+                .allowNativeAccess(true);
+    }
+
     private static void evaluateAdd(PolyglotAdapter adapter) {
         EvalResult<?> result = adapter.evaluate("add", MyApi.class, 10, 20);
         IO.println("Result(add) → " + result);

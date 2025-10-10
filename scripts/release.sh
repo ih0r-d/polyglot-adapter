@@ -10,17 +10,27 @@ fi
 
 echo "🚀 Starting release $VERSION..."
 
-./mvnw -q versions:set -DnewVersion="$VERSION" -DgenerateBackupPoms=false > /dev/null 2>&1
-git add -- pom.xml **/pom.xml > /dev/null 2>&1
-git commit -m "Release $VERSION" > /dev/null 2>&1
-git tag -a "v$VERSION" -m "Release $VERSION" > /dev/null 2>&1
-git push > /dev/null 2>&1
-git push --tags > /dev/null 2>&1
+# ensure globstar works for recursive ** pattern
+shopt -s globstar
 
+# 1️⃣ Set version for all modules
+./mvnw -q versions:set -DnewVersion="$VERSION" -DgenerateBackupPoms=false
+
+# 2️⃣ Add and commit all pom.xml files
+git add pom.xml **/pom.xml
+git commit -m "🔖 Release $VERSION"
+
+# 3️⃣ Tag and push
+git tag -a "v$VERSION" -m "Release $VERSION"
+git push
+git push --tags
+
+# 4️⃣ Prepare next snapshot version
 NEXT_VERSION=$(echo "$VERSION" | awk -F. '{printf "%d.%d.%d-SNAPSHOT", $1, $2, $3+1}')
-./mvnw -q versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false > /dev/null 2>&1
-git add -- pom.xml **/pom.xml > /dev/null 2>&1
-git commit -m "Prepare for next development iteration $NEXT_VERSION" > /dev/null 2>&1
-git push > /dev/null 2>&1
+./mvnw -q versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false
+
+git add pom.xml **/pom.xml
+git commit -m "🔧 Prepare for next development iteration $NEXT_VERSION"
+git push
 
 echo "✅ Release $VERSION done. Next version: $NEXT_VERSION"

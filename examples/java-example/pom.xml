@@ -13,37 +13,26 @@
 
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
+        <graalpy-plugin.version>25.0.0</graalpy-plugin.version>
+        <junit.version>5.13.4</junit.version>
 
-            <python.package.1>faker==26.0.0</python.package.1>
-            <python.package.2>tabulate==0.9.0</python.package.2>
-
+        <python.package.1>faker==26.0.0</python.package.1>
+        <python.package.2>tabulate==0.9.0</python.package.2>
     </properties>
-
-
-    <!-- Import only BOM to manage versions -->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.github.ih0rd</groupId>
-                <artifactId>polyglot-adapter-bom</artifactId>
-                <version>0.0.3-SNAPSHOT</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <dependencies>
         <!-- Core SDK -->
         <dependency>
             <groupId>io.github.ih0rd</groupId>
             <artifactId>polyglot-adapter-core</artifactId>
+            <version>0.0.6-SNAPSHOT</version>
         </dependency>
 
         <!-- Test framework -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -70,6 +59,7 @@
             <plugin>
                 <groupId>org.graalvm.python</groupId>
                 <artifactId>graalpy-maven-plugin</artifactId>
+                <version>${graalpy-plugin.version}</version>
                 <configuration>
                     <packages>
                         <package>${python.package.1}</package>

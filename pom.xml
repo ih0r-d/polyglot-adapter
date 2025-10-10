@@ -10,10 +10,9 @@
     <packaging>pom</packaging>
 
     <name>polyglot-adapter-parent</name>
-    <description>Parent POM aggregating core, plugin, and BOM modules</description>
+    <description>Parent POM aggregating polyglot core</description>
 
     <modules>
-        <module>polyglot-adapter-bom</module>
         <module>polyglot-adapter-core</module>
     </modules>
 

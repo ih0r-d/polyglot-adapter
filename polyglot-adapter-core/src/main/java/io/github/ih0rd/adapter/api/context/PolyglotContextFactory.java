@@ -1,6 +1,8 @@
 package io.github.ih0rd.adapter.api.context;
 
 import java.nio.file.Path;
+
+import io.github.ih0rd.adapter.exceptions.EvaluationException;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
@@ -55,34 +57,28 @@ public final class PolyglotContextFactory {
         public Builder polyglotAccess(PolyglotAccess v) { polyglotAccess = v; return this; }
 
         public Context build() {
-            if (language == Language.PYTHON) {
-                var vfs = VirtualFileSystem.newBuilder()
-                        .resourceDirectory(resourceDirectory)
-                        .build();
+            var vfs = VirtualFileSystem.newBuilder()
+                    .resourceDirectory(resourceDirectory)
+                    .build();
 
-                var builder = GraalPyResources.contextBuilder(vfs)
-                        .allowExperimentalOptions(allowExperimentalOptions)
-                        .allowAllAccess(allowAllAccess)
-                        .allowHostAccess(hostAccess)
-                        .allowCreateThread(allowCreateThread)
-                        .allowNativeAccess(allowNativeAccess)
-                        .allowPolyglotAccess(polyglotAccess);
-
-                if (allowExperimentalOptions){
-                    builder.option("python.IsolateNativeModules", "true");
+            var builder = switch (language) {
+                case PYTHON -> {
+                    var pyBuilder = GraalPyResources.contextBuilder(vfs);
+                    if (allowExperimentalOptions) {
+                        pyBuilder.option("python.IsolateNativeModules", "true");
+                    }
+                    yield pyBuilder;
                 }
-
-                return builder.build();
-            } else {
-                return Context.newBuilder(language.id())
-                        .allowExperimentalOptions(allowExperimentalOptions)
-                        .allowAllAccess(allowAllAccess)
-                        .allowHostAccess(hostAccess)
-                        .allowCreateThread(allowCreateThread)
-                        .allowNativeAccess(allowNativeAccess)
-                        .allowPolyglotAccess(polyglotAccess)
-                        .build();
-            }
+                case JS -> Context.newBuilder(language.id());
+                case null -> throw new EvaluationException("Unknown language " + language);
+            };
+            return builder.allowExperimentalOptions(allowExperimentalOptions)
+                    .allowAllAccess(allowAllAccess)
+                    .allowHostAccess(hostAccess)
+                    .allowCreateThread(allowCreateThread)
+                    .allowNativeAccess(allowNativeAccess)
+                    .allowPolyglotAccess(polyglotAccess)
+                    .build();
         }
     }
 }
