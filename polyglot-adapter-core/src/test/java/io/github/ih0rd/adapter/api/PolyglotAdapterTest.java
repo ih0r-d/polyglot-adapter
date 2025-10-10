@@ -18,6 +18,12 @@ class PolyglotAdapterTest {
         public <T> EvalResult<?> evaluate(String m, Class<T> c) {
             last = m; return EvalResult.of("ok");
         }
+
+        @Override
+        public <T> EvalResult<?> evaluate(String code) {
+            last = code; return EvalResult.of("ok");
+        }
+
         @Override
         public void close() { closed = true; }
     }

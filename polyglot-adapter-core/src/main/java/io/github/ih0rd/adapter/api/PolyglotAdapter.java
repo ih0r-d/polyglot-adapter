@@ -37,7 +37,12 @@ public record PolyglotAdapter(BaseExecutor executor) implements AutoCloseable {
     return executor.evaluate(methodName, memberTargetType, args);
   }
 
-  /** Evaluate method without arguments. */
+    /** Evaluate method with native code. */
+    public <T>EvalResult<?> evaluate(String code) {
+        return executor.evaluate(code);
+    }
+
+    /** Evaluate method without arguments. */
   public <T> EvalResult<?> evaluate(String methodName, Class<T> memberTargetType) {
     return executor.evaluate(methodName, memberTargetType);
   }

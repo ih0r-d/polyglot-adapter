@@ -13,12 +13,12 @@ import java.util.List;
 
 /**
  * PolyglotAdapter demonstration (GraalPy 25.x)
- *
  * Showcases:
  *  1. Default resources (src/main/python)
  *  2. Custom resources via System property
  *  3. Custom context configuration
  *  4. SimplexService integration
+ *  5. Run pure python code
  */
 public class PolyglotDemo {
 
@@ -26,13 +26,14 @@ public class PolyglotDemo {
     private static final String PY_RESOURCES_KEY = "py.polyglot-resources.path";
     private static final String PY_RESOURCES = "/examples/java-example/src/main/resources/python";
 
-    public static void main(String[] args) {
+    void main() {
         IO.println("🟢 [START] PolyglotAdapter Demo (GraalPy 25.x)\n");
 
         runDefaultExample();
         runCustomResourcesExample();
         runCustomContextExample();
         runSimplexExample();
+        runPythonCode();
 
         IO.println("\n✅ [DONE] All examples executed successfully.");
     }
@@ -119,6 +120,26 @@ public class PolyglotDemo {
 
         } catch (Exception e) {
             IO.println("❌ Error in runSimplexExample: " + e.getMessage());
+        }
+    }
+
+    /** ───────────────────────────────
+     *  CASE 5 — Run pure python code
+     *  ─────────────────────────────── */
+    private static void runPythonCode(){
+        IO.println("\n=== [5] Run native Python part  ===");
+
+        var ctxBuilder = new PolyglotContextFactory.Builder(Language.PYTHON)
+                .allowExperimentalOptions(true)
+                .allowAllAccess(true)
+                .allowNativeAccess(true);
+
+        try (var executor = PyExecutor.create(ctxBuilder);
+             var adapter = PolyglotAdapter.of(executor)) {
+            EvalResult<?> result = adapter.evaluate("sum([i * i for i in range(5)])");
+            IO.println("result → " + result);
+            int sum = result.as(Integer.class);
+            IO.println("sum = " + sum);
         }
     }
 

@@ -49,7 +49,20 @@ public record PyExecutor(Context context, Path resourcesPath) implements BaseExe
     return invokeMethod(memberTargetType, type, methodName);
   }
 
-  private <T> T mapValue(Class<T> memberTargetType, String methodName) {
+    @Override
+    public <T> EvalResult<?> evaluate(String code) {
+        try {
+            var value = context.eval(Source.newBuilder(Language.PYTHON.id(), code, "inline.py").buildLiteral());
+            if (value.isNull()) {
+                return EvalResult.of(null);
+            }
+            return EvalResult.of(value);
+        } catch (Exception e) {
+            throw new EvaluationException("Error during run python code", e);
+        }
+    }
+
+    private <T> T mapValue(Class<T> memberTargetType, String methodName) {
     var source = getFileSource(memberTargetType);
     context.eval(source);
 
