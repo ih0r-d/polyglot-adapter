@@ -22,8 +22,8 @@ tasks:
     desc: Build project
     silent: true
     cmds:
-      - echo "🔧 Building project (skip tests)..."
-      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean package -q -DskipTests 2>/dev/null
+      - echo "🔧 Building project ..."
+      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean package -q 2>/dev/null
       - echo "📦 Build complete — check ./target"
 
   test:

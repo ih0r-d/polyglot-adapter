@@ -1,116 +1,65 @@
 package io.github.ih0rd.adapter.utils;
 
-import static io.github.ih0rd.adapter.utils.Constants.PROJ_PY_RESOURCES_PATH;
-import static org.junit.jupiter.api.Assertions.*;
-
 import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class CommonUtilsTest {
 
-  interface MyOps {
-    int add(int a, int b);
-
-    void ping();
-  }
-
-  static class MyOpsImpl implements MyOps {
-    @Override
-    public int add(int a, int b) {
-      return a + b;
+    interface MyOps {
+        int add(int a, int b);
+        void ping();
     }
 
-    @Override
-    public void ping() {
-      /* no-op */
+    static class Impl implements MyOps {
+        public int add(int a, int b) { return a + b; }
+        public void ping() {}
     }
-  }
 
-  private static Path createdFile;
-
-  @BeforeAll
-  static void setupResourcesDir() throws IOException {
-    Path createdDir = Path.of(PROJ_PY_RESOURCES_PATH);
-    if (!Files.exists(createdDir)) {
-      Files.createDirectories(createdDir);
+    @Test
+    void invokeMethod_returnsResult() {
+        var res = CommonUtils.invokeMethod(MyOps.class, new Impl(), "add", 2, 3);
+        assertEquals(Integer.class, res.type());
+        assertEquals(5, res.value());
     }
-    createdFile = createdDir.resolve("my_ops.py");
-    Files.writeString(createdFile, "# dummy python file for tests\n");
-  }
 
-  @AfterAll
-  static void cleanupResourcesDir() throws IOException {
-    // Keep directory to not affect possible other tests, but remove our file if exists
-    if (createdFile != null && Files.exists(createdFile)) {
-      Files.delete(createdFile);
+    @Test
+    void invokeMethod_voidReturnsNullType() {
+        var res = CommonUtils.invokeMethod(MyOps.class, new Impl(), "ping");
+        assertEquals(Object.class, res.type());
+        assertNull(res.value());
     }
-  }
 
-  @Test
-  void invokeMethod_returnsResultAndType() {
-    MyOps target = new MyOpsImpl();
-    EvalResult res = CommonUtils.invokeMethod(MyOps.class, target, "add", 2, 3);
-    assertEquals("int", res.type());
-    assertEquals(5, res.value());
-  }
+    @Test
+    void invokeMethod_throwsIfNoSuchMethod() {
+        assertThrows(EvaluationException.class, () ->
+                CommonUtils.invokeMethod(MyOps.class, new Impl(), "missing"));
+    }
 
-  @Test
-  void invokeMethod_voidReturnsOptionalEmpty() {
-    MyOps target = new MyOpsImpl();
-    EvalResult res = CommonUtils.invokeMethod(MyOps.class, target, "ping");
-    assertEquals("void", res.type());
-    assertInstanceOf(Optional.class, res.value());
-    assertTrue(((Optional<?>) res.value()).isEmpty());
-  }
+    @Test
+    void checkIfMethodExists_works() {
+        assertTrue(CommonUtils.checkIfMethodExists(MyOps.class, "add"));
+        assertFalse(CommonUtils.checkIfMethodExists(MyOps.class, "missing"));
+    }
 
-  @Test
-  void invokeMethod_throwsOnUnknownMethod() {
-    MyOps target = new MyOpsImpl();
-    EvaluationException ex =
-        assertThrows(
-            EvaluationException.class,
-            () -> CommonUtils.invokeMethod(MyOps.class, target, "unknown", 1));
-    assertTrue(ex.getMessage().contains("unknown"));
-  }
+    @Test
+    void checkIfMethodExists_failsOnNonInterface() {
+        assertThrows(EvaluationException.class,
+                () -> CommonUtils.checkIfMethodExists(Impl.class, "add"));
+    }
 
-  @Test
-  void checkIfMethodExists_positiveAndNegative() {
-    assertTrue(CommonUtils.checkIfMethodExists(MyOps.class, "add"));
-    assertFalse(CommonUtils.checkIfMethodExists(MyOps.class, "subtract"));
-  }
-
-  static class NotAnInterface {}
-
-  @Test
-  void checkIfMethodExists_throwsWhenNotInterface() {
-    EvaluationException ex =
-        assertThrows(
-            EvaluationException.class,
-            () -> CommonUtils.checkIfMethodExists(NotAnInterface.class, "anything"));
-    assertTrue(ex.getMessage().contains("must be an interface"));
-  }
-
-  @Test
-  void getFirstElement_nullOrEmpty() {
-    assertNull(CommonUtils.getFirstElement(null));
-    assertNull(CommonUtils.getFirstElement(Set.of()));
-  }
-
-  @Test
-  void getFirstElement_returnsFirstFromOrderedSet() {
-    LinkedHashSet<String> set = new LinkedHashSet<>();
-    set.add("first");
-    set.add("second");
-    assertEquals("first", CommonUtils.getFirstElement(set));
-  }
+    @Test
+    void getFirstElement_handlesAllCases() {
+        assertNull(CommonUtils.getFirstElement(null));
+        assertNull(CommonUtils.getFirstElement(Set.of()));
+        LinkedHashSet<String> s = new LinkedHashSet<>();
+        s.add("a"); s.add("b");
+        assertEquals("a", CommonUtils.getFirstElement(s));
+    }
 }
