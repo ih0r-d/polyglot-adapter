@@ -1,0 +1,57 @@
+name: 🚀 Maven Library Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧩 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup JDK 25 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      - name: ⚙️ Install Task CLI (Taskfile.dev)
+        run: |
+          echo "🛠 Installing Task CLI..."
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+          sudo mv ./bin/task /usr/local/bin/task
+          task --version
+
+      - name: 🔧 Build project
+        run: task build
+
+      - name: 🧪 Run tests
+        run: task test
+
+      - name: 📦 Collect JAR artifacts
+        run: |
+          mkdir -p release-artifacts
+          find . -type f -name "*.jar" ! -name "original-*.jar" -exec cp {} release-artifacts/ \;
+          ls -la release-artifacts
+
+      - name: 🏷️ Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          artifacts: "release-artifacts/*.jar"
+          artifactContentType: application/java-archive
+          body: |
+            🚀 **Maven Library Release**  
+            Built automatically from tag `${{ github.ref_name }}`  
+            ✅ Includes compiled JAR artifacts.
+          token: ${{ secrets.GITHUB_TOKEN }}
