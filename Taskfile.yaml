@@ -70,15 +70,6 @@ tasks:
       - ./scripts/bump.sh {{.TYPE}}
       - echo "✅ Version bumped."
 
-  format:
-    desc: Code format (spotless)
-    silent: true
-    cmds:
-      - echo "🎨 Formatting code..."
-      - chmod +x ./scripts/format.sh
-      - ./scripts/format.sh
-      - echo "✅ Format done."
-
   clean-remote-tags:
     desc: Delete remote tags that don't exist locally
     silent: true

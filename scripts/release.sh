@@ -29,16 +29,21 @@ git add pom.xml */pom.xml
 git commit -m "Release $VERSION" >/dev/null 2>&1 || true
 
 # tag + push
+echo "🏷️ Creating and pushing tag v$VERSION..."
 git tag -a "v$VERSION" -m "Release $VERSION"
 git push origin main >/dev/null 2>&1
 git push origin "v$VERSION" >/dev/null 2>&1
 
-# bump snapshot
+echo "✅ Tag v$VERSION pushed successfully."
+
+# bump snapshot (local only, no push)
 NEXT_VERSION=$(echo "$VERSION" | awk -F. '{printf "%d.%d.%d-SNAPSHOT", $1, $2, $3+1}')
+echo "⬆️  Preparing next version $NEXT_VERSION (local only)..."
 ./mvnw -q versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false
 
 git add pom.xml */pom.xml
 git commit -m "Prepare next iteration $NEXT_VERSION" >/dev/null 2>&1 || true
-git push origin main >/dev/null 2>&1
 
-echo "✅ Done. Released $VERSION → Next $NEXT_VERSION"
+echo "✅ Done."
+echo "🚀 Released $VERSION → next development version: $NEXT_VERSION"
+echo "💡 Remember: push main later if you want to publish the next snapshot."
