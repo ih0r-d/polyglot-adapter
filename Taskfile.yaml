@@ -50,10 +50,6 @@ tasks:
       VERSION: { sh: 'echo ${VERSION:-}' }
     cmds:
       - |
-        if [ -z "{{.VERSION}}" ]; then
-          echo "❌ VERSION is required. Run with: task release VERSION=1.2.3"
-          exit 1
-        fi
         echo "🚀 Releasing version {{.VERSION}}..."
         chmod +x ./scripts/release.sh
         ./scripts/release.sh {{.VERSION}}
@@ -69,15 +65,6 @@ tasks:
       - chmod +x ./scripts/bump.sh
       - ./scripts/bump.sh {{.TYPE}}
       - echo "✅ Version bumped."
-
-  format:
-    desc: Code format (spotless)
-    silent: true
-    cmds:
-      - echo "🎨 Formatting code..."
-      - chmod +x ./scripts/format.sh
-      - ./scripts/format.sh
-      - echo "✅ Format done."
 
   clean-remote-tags:
     desc: Delete remote tags that don't exist locally

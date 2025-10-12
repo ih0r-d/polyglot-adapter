@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: 🧩 Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: ☕ Setup JDK 25 (Temurin)
         uses: actions/setup-java@v4

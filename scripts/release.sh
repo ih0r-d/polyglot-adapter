@@ -1,44 +1,33 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
 
 VERSION=${1:-}
-
 if [ -z "$VERSION" ]; then
-  echo "❌ VERSION is required. Usage: ./release.sh 1.2.3"
+  echo "❌ VERSION required: ./release.sh 1.2.3"
   exit 1
 fi
 
-echo "🚀 Starting release $VERSION..."
-
-# ensure clean git state
 if ! git diff-index --quiet HEAD --; then
-  echo "❌ Working directory not clean. Commit or stash changes first."
+  echo "❌ Working directory not clean."
   exit 1
 fi
 
-# check if tag already exists
 if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-  echo "⚠️ Tag v$VERSION already exists — skipping release."
+  echo "⚠️ Tag v$VERSION already exists."
   exit 0
 fi
 
-# update versions
-./mvnw -q versions:set -DnewVersion="$VERSION" -DgenerateBackupPoms=false
+MAVEN_OPTS="--enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
+
+MAVEN_OPTS="$MAVEN_OPTS" ./mvnw -q -ntp -B \
+  versions:set -DnewVersion="$VERSION" \
+  -DgenerateBackupPoms=false -DprocessAllModules=true 2>/dev/null
 
 git add pom.xml */pom.xml
 git commit -m "Release $VERSION" >/dev/null 2>&1 || true
 
-# tag + push
 git tag -a "v$VERSION" -m "Release $VERSION"
-git push origin main >/dev/null 2>&1
 git push origin "v$VERSION" >/dev/null 2>&1
-
-# bump snapshot
-NEXT_VERSION=$(echo "$VERSION" | awk -F. '{printf "%d.%d.%d-SNAPSHOT", $1, $2, $3+1}')
-./mvnw -q versions:set -DnewVersion="$NEXT_VERSION" -DgenerateBackupPoms=false
-
-git add pom.xml */pom.xml
-git commit -m "Prepare next iteration $NEXT_VERSION" >/dev/null 2>&1 || true
 git push origin main >/dev/null 2>&1
 
-echo "✅ Done. Released $VERSION → Next $NEXT_VERSION"
+echo "✅ Released $VERSION (tag v$VERSION pushed)"

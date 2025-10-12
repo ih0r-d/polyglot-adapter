@@ -1,33 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mvn_get_version() {
-  local out err
-  out="$(mktemp)"; err="$(mktemp)"
-  if ./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout >"$out" 2>"$err"; then
-    tr -d '\r' <"$out"
-    rm -f "$out" "$err"
-  else
-    echo "❌ Maven failed to read project.version"
-    cat "$err"
-    rm -f "$out" "$err"
-    exit 1
-  fi
-}
-
-mvn_set_quiet() {
-  local tmp
-  tmp="$(mktemp)"
-  if ! ./mvnw -q versions:set -DnewVersion="$1" -DgenerateBackupPoms=false 1>/dev/null 2>"$tmp"; then
-    echo "❌ Maven failed to set version to $1"
-    cat "$tmp"
-    rm -f "$tmp"
-    exit 1
-  fi
-  rm -f "$tmp"
-}
-
 TYPE=${1:-patch}  # patch|minor|major
+
+mvn_get_version() {
+  ./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout | tr -d '\r'
+}
+
+mvn_set_version() {
+  ./mvnw -q versions:set -DnewVersion="$1" -DgenerateBackupPoms=false >/dev/null
+}
+
 CURRENT="$(mvn_get_version)"
 BASE="${CURRENT/-SNAPSHOT/}"
 IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE"
@@ -40,5 +23,9 @@ case "$TYPE" in
 esac
 
 NEXT="$MAJOR.$MINOR.$PATCH-SNAPSHOT"
-mvn_set_quiet "$NEXT"
-echo "🔧 Bumped version: $CURRENT → $NEXT"
+mvn_set_version "$NEXT"
+
+git add pom.xml */pom.xml
+git commit -m "Bump version: $CURRENT → $NEXT" >/dev/null 2>&1 || true
+
+echo "✅ Bumped version: $CURRENT → $NEXT"
