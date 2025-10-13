@@ -19,7 +19,7 @@
 
         <!-- Centralized versions -->
         <graal.version>25.0.0</graal.version>
-        <junit.version>5.10.0</junit.version>
+        <junit.version>6.0.0</junit.version>
         <mockito.version>5.14.2</mockito.version>
         <spotless.version>3.0.0</spotless.version>
         <jacoco.version>0.8.13</jacoco.version>
