@@ -6,6 +6,7 @@ import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.api.executors.JsExecutor;
 import io.github.ih0rd.adapter.api.executors.PyExecutor;
+import io.github.ih0rd.examples.contracts.ForecastService;
 import io.github.ih0rd.examples.contracts.LibrariesApi;
 import io.github.ih0rd.examples.contracts.MyApi;
 import io.github.ih0rd.examples.contracts.SimplexSolver;
@@ -13,14 +14,23 @@ import io.github.ih0rd.examples.contracts.SimplexSolver;
 import java.util.List;
 
 /**
- * PolyglotAdapter demonstration (GraalPy 25.x)
- * Showcases:
- *  1. Default resources (src/main/python)
- *  2. Custom resources via System property
- *  3. Custom context configuration
- *  4. SimplexService integration
- *  5. Run pure python code
- *  6. Run pure JS code
+ * PolyglotAdapter demonstration (GraalPy & GraalJS 25.x)
+ *
+ * <p><b>Summary:</b> Demonstrates Java ↔ GraalVM Polyglot integration
+ * with Python (GraalPy) and JavaScript (GraalJS).
+ *
+ * <p><b>Cases:</b>
+ * <ol>
+ *     <li>Default Python resources</li>
+ *     <li>Custom resource directories</li>
+ *     <li>Custom context configuration</li>
+ *     <li>Simplex solver integration</li>
+ *     <li>Pure Python execution (no NumPy)</li>
+ *     <li>NumPy forecast execution</li>
+ *     <li>Inline JavaScript execution</li>
+ * </ol>
+ *
+ * <p><b>Notes:</b> On macOS ARM (M1–M4), GraalPy has limited support for native C extensions (e.g. NumPy).
  */
 public class PolyglotDemo {
 
@@ -31,34 +41,33 @@ public class PolyglotDemo {
     void main() {
         IO.println("🟢 [START] PolyglotAdapter Demo (GraalPy & GraalJS 25.x)\n");
 
-        runDefaultExample();
-        runCustomResourcesExample();
-        runCustomContextExample();
-        runSimplexExample();
-        runPythonCode();
-        runJsCode();
+        try {
+            runDefaultExample();
+            runCustomResourcesExample();
+            runCustomContextExample();
+            runSimplexExample();
+            runPurePythonCode();
+            runNumpyForecast();
+            runJsCode();
+        } catch (Exception e) {
+            IO.println("❌ [FATAL] Unexpected error in main: " + e.getMessage());
+        }
 
         IO.println("\n✅ [DONE] All examples executed successfully.");
     }
 
-    /** ───────────────────────────────
-     *  CASE 1 — Default Python resources
-     *  Loads scripts from src/main/python
-     *  ─────────────────────────────── */
+    // === [1] Default Python resources ===
     private static void runDefaultExample() {
         IO.println("\n=== [1] Default Resources Example ===");
         try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
             evaluateAdd(adapter);
             evaluatePing(adapter);
         } catch (Exception e) {
-            IO.println("❌ Error in runDefaultExample: " + e.getMessage());
+            IO.println("❌ Error in [runDefaultExample]: " + e.getMessage());
         }
     }
 
-    /** ───────────────────────────────
-     *  CASE 2 — Custom resource directory
-     *  Overrides py.polyglot-resources.path
-     *  ─────────────────────────────── */
+    // === [2] Custom Python resource directory ===
     private static void runCustomResourcesExample() {
         IO.println("\n=== [2] Custom Resources Example ===");
         System.setProperty(PY_RESOURCES_KEY, PROJECT_DIR + PY_RESOURCES);
@@ -67,17 +76,13 @@ public class PolyglotDemo {
             evaluateAdd(adapter);
             evaluatePing(adapter);
         } catch (Exception e) {
-            IO.println("❌ Error in runCustomResourcesExample: " + e.getMessage());
+            IO.println("❌ Error in [runCustomResourcesExample]: " + e.getMessage());
         }
     }
 
-    /** ───────────────────────────────
-     *  CASE 3 — Custom context builder
-     *  Demonstrates GraalPy context tuning
-     *  ─────────────────────────────── */
+    // === [3] Custom Context Builder example ===
     private static void runCustomContextExample() {
         IO.println("\n=== [3] Custom Context Example ===");
-
         var ctxBuilder = languageBuilder(Language.PYTHON);
 
         try (var executor = PyExecutor.create(ctxBuilder);
@@ -93,14 +98,11 @@ public class PolyglotDemo {
             IO.println("fakeParagraphs → " + fakeParagraphs);
 
         } catch (Exception e) {
-            IO.println("❌ Error in runCustomContextExample: " + e.getMessage());
+            IO.println("❌ Error in [runCustomContextExample]: " + e.getMessage());
         }
     }
 
-    /** ───────────────────────────────
-     *  CASE 4 — Simplex Service Demo
-     *  Demonstrates mathematical service call
-     *  ─────────────────────────────── */
+    // === [4] Simplex Solver Example ===
     private static void runSimplexExample() {
         IO.println("\n=== [4] Simplex Service Example ===");
         try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
@@ -109,82 +111,103 @@ public class PolyglotDemo {
             var bInput = List.of(8, 16, 12);
             var cInput = List.of(3, 2);
             var prob = "max";
-            var enableMsg = true;
-            var latex = true;
 
-            var result = adapter.evaluate("runSimplex",
+            var result = adapter.evaluate(
+                    "runSimplex",
                     SimplexSolver.class,
-                    aInput, bInput, cInput, prob, null, enableMsg, latex);
+                    aInput, bInput, cInput, prob, null, false, false
+            );
 
             IO.println("runSimplex → " + result);
 
         } catch (Exception e) {
-            IO.println("❌ Error in runSimplexExample: " + e.getMessage());
+            IO.println("❌ Error in [runSimplexExample]: " + e.getMessage());
         }
     }
 
-    /** ───────────────────────────────
-     *  CASE 5 — Run pure python code
-     *  ─────────────────────────────── */
-    private static void runPythonCode(){
-        IO.println("\n=== [5] Run native Python part  ===");
-
+    // === [5] Run pure Python (no NumPy) ===
+    private static void runPurePythonCode() {
+        IO.println("\n=== [5] Run pure Python (no NumPy) ===");
         var ctxBuilder = languageBuilder(Language.PYTHON);
 
         try (var executor = PyExecutor.create(ctxBuilder);
              var adapter = PolyglotAdapter.of(executor)) {
+
             EvalResult<?> result = adapter.evaluate("sum([i * i for i in range(5)])");
-            IO.println("result → " + result);
-            var sum = result.as(Double.class);
-            IO.println("sum = " + sum);
+            IO.println("Python result → " + result);
+            IO.println("sum = " + result.as(Double.class));
+
+        } catch (Exception e) {
+            IO.println("❌ Error in [runPurePythonCode]: " + e.getMessage());
         }
     }
 
-    /** ───────────────────────────────
-     *  CASE 6 — Run pure JS code
-     *  ─────────────────────────────── */
-    private static void runJsCode(){
-        String jsCode = """
-        // Simple JavaScript example — array operations & function execution
-        function calculateStats(arr) {
-            const sum = arr.reduce((a, b) => a + b, 0);
-            const avg = sum / arr.length;
-            return { sum: sum, average: avg };
+    // === [6] NumPy Forecast Example ===
+    private static void runNumpyForecast() {
+        IO.println("\n=== [6] NumPy Forecast Example ===");
+        System.setProperty(PY_RESOURCES_KEY, PROJECT_DIR + PY_RESOURCES);
+
+        try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
+            List<Double> y = List.of(10.0, 12.0, 15.0, 14.0, 18.0, 20.0);
+            int steps = 4;
+            int seasonPeriod = 3;
+            EvalResult<?> forecast = adapter.evaluate("forecast", ForecastService.class, y, steps, seasonPeriod);
+            IO.println("forecast → " + forecast);
+        } catch (Exception e) {
+            IO.println("❌ Error in [runNumpyForecast]: " + e.getMessage());
         }
-        
-        const numbers = [2, 4, 6, 8, 10];
-        calculateStats(numbers);
-        """;
+    }
+
+    // === [7] JavaScript Example ===
+    private static void runJsCode() {
+        IO.println("\n=== [7] JavaScript Example ===");
+
+        String jsCode = """
+                function calculateStats(arr) {
+                    const sum = arr.reduce((a, b) => a + b, 0);
+                    const avg = sum / arr.length;
+                    return { sum, average: avg };
+                }
+                const numbers = [2, 4, 6, 8, 10];
+                calculateStats(numbers);
+                """;
 
         var jsBuilder = languageBuilder(Language.JS);
-        try (var executor = JsExecutor.create(jsBuilder);var adapter= PolyglotAdapter.of(executor)){
+        try (var executor = JsExecutor.create(jsBuilder);
+             var adapter = PolyglotAdapter.of(executor)) {
+
             EvalResult<?> result = adapter.evaluate(jsCode);
-            IO.println("result → " + result);
+            IO.println("JS result → " + result);
+
+        } catch (Exception e) {
+            IO.println("❌ Error in [runJsCode]: " + e.getMessage());
         }
     }
 
-    /**
-     * ───────────────────────────────
-     * HELPER METHODS
-     * ───────────────────────────────
-     *
-     * @return
-     */
-
-    private static PolyglotContextFactory.Builder languageBuilder(Language lang){
+    // === Shared helpers ===
+    private static PolyglotContextFactory.Builder languageBuilder(Language lang) {
         return new PolyglotContextFactory.Builder(lang)
                 .allowExperimentalOptions(true)
                 .allowAllAccess(true)
-                .allowNativeAccess(true);
+                .allowNativeAccess(true)
+                .withSafePythonDefaults();
     }
 
     private static void evaluateAdd(PolyglotAdapter adapter) {
-        EvalResult<?> result = adapter.evaluate("add", MyApi.class, 10, 20);
-        IO.println("Result(add) → " + result);
+        try {
+            EvalResult<?> result = adapter.evaluate("add", MyApi.class, 10, 20);
+            IO.println("Result(add) → " + result);
+        } catch (Exception e) {
+            IO.println("❌ Error in [evaluateAdd]: " + e.getMessage());
+        }
     }
 
     private static void evaluatePing(PolyglotAdapter adapter) {
-        EvalResult<?> result = adapter.evaluate("ping", MyApi.class);
-        IO.println("Result(ping) → " + result);
+        try {
+            EvalResult<?> result = adapter.evaluate("ping", MyApi.class);
+            IO.println("Result(ping) → " + result);
+        } catch (Exception e) {
+            IO.println("❌ Error in [evaluatePing]: " + e.getMessage());
+        }
     }
 }

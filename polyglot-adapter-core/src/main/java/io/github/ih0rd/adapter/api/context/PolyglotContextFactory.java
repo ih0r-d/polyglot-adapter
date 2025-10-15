@@ -9,6 +9,17 @@ import org.graalvm.polyglot.PolyglotAccess;
 import org.graalvm.python.embedding.GraalPyResources;
 import org.graalvm.python.embedding.VirtualFileSystem;
 
+/**
+ * Factory for creating Polyglot {@link Context} instances
+ * with configurable access and embedded resource management.
+ *
+ * <p>Provides builder-based configuration for:
+ * <ul>
+ *     <li>Host/native access and experimental options</li>
+ *     <li>Custom resource paths (VFS)</li>
+ *     <li>Optional safe defaults for GraalPy (suppressing noisy logs & CAPI issues)</li>
+ * </ul>
+ */
 public final class PolyglotContextFactory {
 
     private PolyglotContextFactory() {}
@@ -28,11 +39,17 @@ public final class PolyglotContextFactory {
         private String resourceDirectory = "org.graalvm.python.vfs";
         private Path resourcesPath;
 
+        // internal flag
+        private boolean applySafePythonDefaults = false;
+
         public Builder(Language language) {
             this.language = language;
             this.resourcesPath = ResourcesProvider.get(language);
         }
 
+        // ───────────────────────────────
+        // Standard configuration methods
+        // ───────────────────────────────
         public Builder resourceDirectory(String resourceDir) {
             if (resourceDir != null && !resourceDir.isBlank()) {
                 this.resourceDirectory = resourceDir;
@@ -56,6 +73,24 @@ public final class PolyglotContextFactory {
         public Builder allowNativeAccess(boolean v) { allowNativeAccess = v; return this; }
         public Builder polyglotAccess(PolyglotAccess v) { polyglotAccess = v; return this; }
 
+        // ───────────────────────────────
+        // New feature: safe defaults for GraalPy
+        // ───────────────────────────────
+        /**
+         * Applies a pre-configured set of options to suppress noisy warnings,
+         * disable problematic C extensions, and redirect internal logs.
+         *
+         * <p>This is especially useful on macOS ARM (M1/M2/M3),
+         * where GraalPy’s NumPy C API causes Mach-O modification errors.
+         */
+        public Builder withSafePythonDefaults() {
+            this.applySafePythonDefaults = true;
+            return this;
+        }
+
+        // ───────────────────────────────
+        // Build the actual Polyglot Context
+        // ───────────────────────────────
         public Context build() {
             var vfs = VirtualFileSystem.newBuilder()
                     .resourceDirectory(resourceDirectory)
@@ -67,12 +102,23 @@ public final class PolyglotContextFactory {
                     if (allowExperimentalOptions) {
                         pyBuilder.option("python.IsolateNativeModules", "true");
                     }
+
+                    // Apply safe defaults if enabled
+                    if (applySafePythonDefaults) {
+                        pyBuilder
+                                .option("python.WarnExperimentalFeatures", "false")
+                                .option("engine.WarnInterpreterOnly", "false")
+                                .option("log.file", "/dev/null")
+                                .option("python.CAPI", "false");
+                    }
                     yield pyBuilder;
                 }
                 case JS -> Context.newBuilder(language.id());
                 case null -> throw new EvaluationException("Unknown language " + language);
             };
-            return builder.allowExperimentalOptions(allowExperimentalOptions)
+
+            return builder
+                    .allowExperimentalOptions(allowExperimentalOptions)
                     .allowAllAccess(allowAllAccess)
                     .allowHostAccess(hostAccess)
                     .allowCreateThread(allowCreateThread)

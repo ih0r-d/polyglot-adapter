@@ -18,6 +18,7 @@
 
         <python.package.1>faker==26.0.0</python.package.1>
         <python.package.2>tabulate==0.9.0</python.package.2>
+        <python.package.3>numpy==2.2.4</python.package.3>
     </properties>
 
     <dependencies>
@@ -25,7 +26,7 @@
         <dependency>
             <groupId>io.github.ih0rd</groupId>
             <artifactId>polyglot-adapter-core</artifactId>
-            <version>0.0.6-SNAPSHOT</version>
+            <version>0.0.10</version>
         </dependency>
 
         <!-- Test framework -->
@@ -64,6 +65,7 @@
                     <packages>
                         <package>${python.package.1}</package>
                         <package>${python.package.2}</package>
+                        <package>${python.package.3}</package>
                     </packages>
                 </configuration>
                 <executions>
