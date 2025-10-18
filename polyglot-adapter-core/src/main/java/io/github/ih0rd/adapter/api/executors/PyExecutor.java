@@ -9,84 +9,65 @@ import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import io.github.ih0rd.adapter.utils.ValueUnwrapper;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.*;
 
 /**
- * Executor for Python classes via GraalPy. Loads sources from either classpath (resources/python)
- * or a filesystem path resolved via {@link PolyglotContextFactory.Builder#getResourcesPath()}.
+ * Python executor implementation for GraalPy.
+ * Loads Python classes and invokes their methods via polyglot API.
  */
 public record PyExecutor(Context context, Path resourcesPath) implements BaseExecutor {
 
-    /**
-     * Create executor with default context configuration.
-     */
-    public static PyExecutor createDefault() {
-        var builder = new PolyglotContextFactory.Builder(Language.PYTHON);
-        return new PyExecutor(builder.build(), builder.getResourcesPath());
-    }
-
-    /**
-     * Create executor with custom context configuration.
-     */
-    public static PyExecutor create(PolyglotContextFactory.Builder builder) {
-        return new PyExecutor(builder.build(), builder.getResourcesPath());
+    @Override
+    public String languageId() {
+        return PYTHON;
     }
 
     @Override
-    public <T> EvalResult<?> evaluate(
-            String methodName, Class<T> memberTargetType, Object... args) {
-        var type = mapValue(memberTargetType, methodName);
-        return invokeMethod(memberTargetType, type, methodName, args);
+    public <T> EvalResult<?> evaluate(String methodName, Class<T> memberTargetType, Object... args) {
+        var instance = mapValue(memberTargetType, methodName);
+        return invokeMethod(memberTargetType, instance, methodName, args);
     }
 
     @Override
     public <T> EvalResult<?> evaluate(String methodName, Class<T> memberTargetType) {
-        var type = mapValue(memberTargetType, methodName);
-        return invokeMethod(memberTargetType, type, methodName);
+        var instance = mapValue(memberTargetType, methodName);
+        return invokeMethod(memberTargetType, instance, methodName);
     }
 
     @Override
     public <T> EvalResult<?> evaluate(String code) {
-        try {
-            var value = context.eval(Source.newBuilder(Language.PYTHON.id(), code, "inline.py").buildLiteral());
-
-            if (value == null || value.isNull()) {
-                return EvalResult.of(null);
-            }
-
-            T unwrapped = ValueUnwrapper.unwrap(value);
-
-            return EvalResult.of(unwrapped);
-        } catch (Exception e) {
-            throw new EvaluationException("Error during Python code execution", e);
-        }
+        return evalInline(code);
     }
 
+    public static PyExecutor createDefault() {
+        return BaseExecutor.createDefault(Language.PYTHON, PyExecutor::new);
+    }
+
+    public static PyExecutor create(PolyglotContextFactory.Builder builder) {
+        return BaseExecutor.create(Language.PYTHON, builder, PyExecutor::new);
+    }
 
     private <T> T mapValue(Class<T> memberTargetType, String methodName) {
         var source = getFileSource(memberTargetType);
         context.eval(source);
 
-
-        var polyglotBindings = context.getPolyglotBindings();
-        var pyClass = getFirstElement(polyglotBindings.getMemberKeys());
+        var bindings = context.getPolyglotBindings();
+        var pyClass = getFirstElement(bindings.getMemberKeys());
         validate(pyClass, memberTargetType);
 
-        var member = polyglotBindings.getMember(pyClass);
+        var member = bindings.getMember(pyClass);
         if (!checkIfMethodExists(memberTargetType, methodName)
                 || member.getMember(methodName) == null) {
             throw new EvaluationException(
-                    "Method " + methodName + " is not supported for " + memberTargetType);
+                    "Method " + methodName + " is not supported for " + memberTargetType.getSimpleName());
         }
+
         return member.newInstance().as(memberTargetType);
     }
 
@@ -94,27 +75,24 @@ public record PyExecutor(Context context, Path resourcesPath) implements BaseExe
         if (pyClassName == null || pyClassName.isEmpty()) {
             throw new EvaluationException("Invalid Python class name: " + pyClassName);
         }
+
         var interfaceName = memberTargetType.getSimpleName();
         if (!interfaceName.equals(pyClassName)) {
             throw new EvaluationException(
-                    "Interface name '"
-                            + interfaceName
-                            + "' must equal Python class name '"
-                            + pyClassName
-                            + "'");
+                    "Interface name '" + interfaceName + "' must equal Python class name '" + pyClassName + "'");
         }
     }
 
-    /**
-     * Resolve Python source file: check classpath first, then fallback to filesystem path.
-     */
     private <T> Source getFileSource(Class<T> memberTargetType) {
+        return SOURCE_CACHE.computeIfAbsent(memberTargetType, this::loadSource);
+    }
+
+    private <T> Source loadSource(Class<T> memberTargetType) {
         var interfaceName = memberTargetType.getSimpleName();
         var pyFileName = camelToSnake(interfaceName);
         var resourcePath = "python/" + pyFileName + ".py";
         var cl = Thread.currentThread().getContextClassLoader();
 
-        // 1) Classpath
         try (InputStream is = cl.getResourceAsStream(resourcePath)) {
             if (is != null) {
                 try (Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
@@ -122,21 +100,14 @@ public record PyExecutor(Context context, Path resourcesPath) implements BaseExe
                 }
             }
         } catch (Exception e) {
-            throw new EvaluationException(
-                    "Failed to read Python script from classpath: " + resourcePath, e);
+            throw new EvaluationException("Failed to read Python script from classpath: " + resourcePath, e);
         }
 
-        // 2) Filesystem fallback
         var fsPath = resourcesPath.resolve(pyFileName + ".py");
         if (!Files.exists(fsPath)) {
             throw new EvaluationException(
-                    "Cannot find Python file: "
-                            + pyFileName
-                            + " (classpath '"
-                            + resourcePath
-                            + "', filesystem '"
-                            + fsPath
-                            + "')");
+                    "Cannot find Python file: " + pyFileName +
+                            " (classpath '" + resourcePath + "', filesystem '" + fsPath + "')");
         }
 
         try {

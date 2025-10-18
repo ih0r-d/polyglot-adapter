@@ -12,6 +12,8 @@ import io.github.ih0rd.examples.contracts.MyApi;
 import io.github.ih0rd.examples.contracts.SimplexSolver;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * PolyglotAdapter demonstration (GraalPy & GraalJS 25.x)
@@ -28,6 +30,7 @@ import java.util.List;
  *     <li>Pure Python execution (no NumPy)</li>
  *     <li>NumPy forecast execution</li>
  *     <li>Inline JavaScript execution</li>
+ *     <li>Async Python execution</li>
  * </ol>
  *
  * <p><b>Notes:</b> On macOS ARM (M1–M4), GraalPy has limited support for native C extensions (e.g. NumPy).
@@ -47,8 +50,9 @@ public class PolyglotDemo {
             runCustomContextExample();
             runSimplexExample();
             runPurePythonCode();
-            runNumpyForecast();
+//            runNumpyForecast();
             runJsCode();
+            runAsyncExample();
         } catch (Exception e) {
             IO.println("❌ [FATAL] Unexpected error in main: " + e.getMessage());
         }
@@ -115,7 +119,7 @@ public class PolyglotDemo {
             var result = adapter.evaluate(
                     "runSimplex",
                     SimplexSolver.class,
-                    aInput, bInput, cInput, prob, null, false, false
+                    aInput, bInput, cInput, prob, null, true, true
             );
 
             IO.println("runSimplex → " + result);
@@ -148,10 +152,8 @@ public class PolyglotDemo {
         System.setProperty(PY_RESOURCES_KEY, PROJECT_DIR + PY_RESOURCES);
 
         try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
-            List<Double> y = List.of(10.0, 12.0, 15.0, 14.0, 18.0, 20.0);
-            int steps = 4;
-            int seasonPeriod = 3;
-            EvalResult<?> forecast = adapter.evaluate("forecast", ForecastService.class, y, steps, seasonPeriod);
+            var args = numPyArgs();
+            EvalResult<?> forecast = adapter.evaluate("forecast", ForecastService.class, args);
             IO.println("forecast → " + forecast);
         } catch (Exception e) {
             IO.println("❌ Error in [runNumpyForecast]: " + e.getMessage());
@@ -184,6 +186,29 @@ public class PolyglotDemo {
         }
     }
 
+    // === [8] Async Python Example ===
+    private static void runAsyncExample() {
+        IO.println("\n=== [8] Async Python Example ===");
+        System.setProperty(PY_RESOURCES_KEY, PROJECT_DIR + PY_RESOURCES);
+
+        try (PolyglotAdapter adapter = PolyglotAdapter.python()) {
+
+            IO.println("→ Submitting async task...");
+
+            var args = numPyArgs();
+            CompletableFuture<EvalResult<?>> forecast = adapter.evaluateAsync("forecast", ForecastService.class, args);
+
+            IO.println("→ Doing other work while Python runs...");
+//            Thread.sleep(10000);
+            var result = forecast.get();
+            IO.println("Async Python forecast → " + result);
+
+        } catch (Exception e) {
+            IO.println("❌ Error in [runAsyncExample]: " + e.getMessage());
+        }
+    }
+
+
     // === Shared helpers ===
     private static PolyglotContextFactory.Builder languageBuilder(Language lang) {
         return new PolyglotContextFactory.Builder(lang)
@@ -191,6 +216,13 @@ public class PolyglotDemo {
                 .allowAllAccess(true)
                 .allowNativeAccess(true)
                 .withSafePythonDefaults();
+    }
+
+    private static Object[] numPyArgs(){
+        List<Double> y = List.of(10.0, 12.0, 15.0, 14.0, 18.0, 20.0);
+        int steps = 4;
+        int seasonPeriod = 3;
+        return new Object[]{y, steps, seasonPeriod};
     }
 
     private static void evaluateAdd(PolyglotAdapter adapter) {

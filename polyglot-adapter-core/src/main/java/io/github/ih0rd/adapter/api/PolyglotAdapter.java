@@ -5,6 +5,7 @@ import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.api.executors.BaseExecutor;
 import io.github.ih0rd.adapter.api.executors.PyExecutor;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * High-level adapter for executing polyglot code. Provides unified API for different executors
@@ -47,7 +48,20 @@ public record PolyglotAdapter(BaseExecutor executor) implements AutoCloseable {
     return executor.evaluate(methodName, memberTargetType);
   }
 
-  @Override
+    public CompletableFuture<EvalResult<?>> evaluateAsync(String code) {
+        return executor.evaluateAsync(code);
+    }
+
+    public <T> CompletableFuture<EvalResult<?>> evaluateAsync(String methodName, Class<T> memberTargetType, Object... args) {
+        return executor.evaluateAsync(methodName, memberTargetType, args);
+    }
+
+    public <T> CompletableFuture<EvalResult<?>> evaluateAsync(String methodName, Class<T> memberTargetType) {
+        return executor.evaluateAsync(methodName, memberTargetType);
+    }
+
+
+    @Override
   public void close() {
     executor.close();
   }
