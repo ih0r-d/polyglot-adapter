@@ -1,25 +1,57 @@
 package io.github.ih0rd.adapter.utils;
 
 import org.graalvm.polyglot.Value;
-
 import java.util.*;
 
-/**
- * Utility class for safely converting {@link Value} objects from GraalVM
- * to strongly-typed Java representations.
- */
+
+/// # ValueUnwrapper
+/// Utility class for safely converting {@link org.graalvm.polyglot.Value}
+/// objects from GraalVM into strongly-typed Java representations.
+///
+/// ---
+/// ### Responsibilities
+/// - Converts polyglot `Value` objects into standard Java types.
+/// - Supports primitives, strings, arrays, and maps.
+/// - Provides both typed and generic unwrapping methods.
+/// - Handles nested polyglot structures recursively.
+///
+/// ---
+/// ### Example
+/// ```java
+/// Value val = context.eval("python", "[1, 2, 3]");
+/// List<Integer> list = ValueUnwrapper.unwrap(val, List.class);
+/// ```
+///
+/// ```java
+/// Value val = context.eval("js", "({name: 'Alice', age: 30})");
+/// Map<String, Object> user = ValueUnwrapper.unwrap(val);
+/// System.out.println(user.get("name")); // "Alice"
+/// ```
 public final class ValueUnwrapper {
+
     private ValueUnwrapper() {
+        // utility class, do not instantiate
     }
 
-    /**
-     * Fully generic, strongly typed unwrap method.
-     *
-     * @param value      the GraalVM {@link Value} to unwrap
-     * @param targetType the expected Java type
-     * @param <T>        inferred Java type
-     * @return converted value of type {@code T}
-     */
+    /// ### unwrap(value, targetType)
+    /// Strongly-typed unwrapping method that converts a GraalVM {@link Value}
+    /// into the specified Java type.
+    ///
+    /// ---
+    /// #### Parameters
+    /// - `value` — GraalVM {@link Value} instance.
+    /// - `targetType` — expected Java target type.
+    ///
+    /// ---
+    /// #### Returns
+    /// The converted Java object of type `<T>`.
+    ///
+    /// ---
+    /// #### Behavior
+    /// - Handles primitives (`int`, `double`, `boolean`, etc.).
+    /// - Converts arrays into immutable {@link java.util.List}.
+    /// - Converts objects into immutable {@link java.util.Map}.
+    /// - Delegates to Graal’s built-in `Value.as()` for unknown types.
     @SuppressWarnings("unchecked")
     public static <T> T unwrap(Value value, Class<T> targetType) {
         if (value == null || value.isNull()) {
@@ -72,14 +104,23 @@ public final class ValueUnwrapper {
             return (T) value;
         }
 
-        // fallback: delegate to Graal built-in conversion
         return value.as(targetType);
     }
 
-    /**
-     * Convenience overload — infers {@code <T>} dynamically and returns best-fit Java type.
-     * Similar to {@code unwrap(value, Object.class)} but automatically infers type.
-     */
+    /// ### unwrap(value)
+    /// Convenience overload that dynamically infers the resulting type.
+    ///
+    /// ---
+    /// #### Behavior
+    /// - Automatically detects the most appropriate Java type.
+    /// - Handles lists, maps, primitives, and nested objects.
+    ///
+    /// ---
+    /// #### Example
+    /// ```java
+    /// Value jsValue = context.eval("js", "[10, 20, 30]");
+    /// List<?> numbers = ValueUnwrapper.unwrap(jsValue);
+    /// ```
     @SuppressWarnings("unchecked")
     public static <T> T unwrap(Value value) {
         if (value == null || value.isNull()) return null;

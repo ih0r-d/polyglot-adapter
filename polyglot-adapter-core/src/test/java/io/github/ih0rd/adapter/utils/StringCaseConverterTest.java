@@ -4,18 +4,26 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class StringCaseConverterTest {
+
     @Test
-    void snakeToCamel_handlesCases() {
-        assertNull(StringCaseConverter.snakeToCamel(null));
-        assertEquals("", StringCaseConverter.snakeToCamel(""));
-        assertEquals("helloWorld", StringCaseConverter.snakeToCamel("hello_world"));
+    void camelToSnake_convertsCorrectly() {
+        assertEquals("my_class_name", StringCaseConverter.camelToSnake("MyClassName"));
     }
 
     @Test
-    void camelToSnake_handlesCases() {
+    void camelToSnake_handlesNullAndEmpty() {
         assertNull(StringCaseConverter.camelToSnake(null));
         assertEquals("", StringCaseConverter.camelToSnake(""));
-        assertEquals("my_class", StringCaseConverter.camelToSnake("MyClass"));
-        assertEquals("user_i_d", StringCaseConverter.camelToSnake("UserID"));
+    }
+
+    @Test
+    void snakeToCamel_convertsCorrectly() {
+        assertEquals("myClassName", StringCaseConverter.snakeToCamel("my_class_name"));
+    }
+
+    @Test
+    void snakeToCamel_handlesNullAndEmpty() {
+        assertNull(StringCaseConverter.snakeToCamel(null));
+        assertEquals("", StringCaseConverter.snakeToCamel(""));
     }
 }

@@ -1,16 +1,33 @@
 package io.github.ih0rd.adapter.api.context;
 
-/**
- * Represents a strongly typed result of polyglot evaluation.
- *
- * @param type  the Java type of the evaluated result
- * @param value the evaluated result value
- */
+import io.github.ih0rd.adapter.utils.ValueUnwrapper;
+
+/// # EvalResult
+/// Immutable record representing a strongly-typed result of a polyglot evaluation.
+///
+/// ---
+/// ### Description
+/// Wraps both the **runtime type** and **evaluated value** of a GraalVM expression.
+/// Supports safe conversion of polyglot `Value` objects via {@link ValueUnwrapper}.
+///
+/// ---
+/// ### Example
+/// ```java
+/// EvalResult<?> result = executor.evaluate("sum([1, 2, 3])");
+/// int sum = result.as(Integer.class);
+/// System.out.println(sum); // → 6
+/// ```
 public record EvalResult<T>(Class<T> type, T value) {
 
-    /**
-     * Static factory for inferring type automatically from value.
-     */
+    /// ### of(value)
+    /// Static factory that infers the result type automatically from the provided value.
+    ///
+    /// ---
+    /// #### Example
+    /// ```java
+    /// EvalResult<?> res = EvalResult.of(42);
+    /// System.out.println(res.type()); // Integer
+    /// ```
     @SuppressWarnings("unchecked")
     public static <T> EvalResult<T> of(T value) {
         return new EvalResult<>(
@@ -19,37 +36,28 @@ public record EvalResult<T>(Class<T> type, T value) {
         );
     }
 
+    /// ### as(targetType)
+    /// Converts the contained value into the specified Java type.
+    ///
+    /// ---
+    /// #### Behavior
+    /// - Delegates unwrapping logic to {@link ValueUnwrapper}.
+    /// - Handles both pure Java and polyglot {@link org.graalvm.polyglot.Value} instances.
+    ///
+    /// ---
+    /// #### Example
+    /// ```java
+    /// int sum = result.as(Integer.class);
+    /// Map<String, Object> data = result.as(Map.class);
+    /// ```
     @SuppressWarnings("unchecked")
     public <R> R as(Class<R> targetType) {
         if (value == null) return null;
 
         if (value instanceof org.graalvm.polyglot.Value val) {
-            if (val.isNull()) return null;
-            if (targetType == String.class && val.isString()) {
-                return (R) val.asString();
-            }
-            if ((Number.class.isAssignableFrom(targetType) || targetType.isPrimitive()) && val.isNumber()) {
-                Number num = val.as(Number.class);
-                return switch (targetType.getSimpleName()) {
-                    case "int", "Integer" -> (R) Integer.valueOf(num.intValue());
-                    case "long", "Long" -> (R) Long.valueOf(num.longValue());
-                    case "double", "Double" -> (R) Double.valueOf(num.doubleValue());
-                    case "float", "Float" -> (R) Float.valueOf(num.floatValue());
-                    case "short", "Short" -> (R) Short.valueOf(num.shortValue());
-                    case "byte", "Byte" -> (R) Byte.valueOf(num.byteValue());
-                    default -> (R) num;
-                };
-            }
-            if (targetType == Boolean.class || targetType == boolean.class) {
-                return (R) Boolean.valueOf(val.asBoolean());
-            }
-            if (targetType.isAssignableFrom(org.graalvm.polyglot.Value.class)) {
-                return (R) val;
-            }
-            return val.as(targetType);
+            return ValueUnwrapper.unwrap(val, targetType);
         }
 
-        // звичайний сценарій — тип уже Java
         if (!targetType.isAssignableFrom(type)) {
             throw new ClassCastException(
                     "Cannot cast " + type.getName() + " to " + targetType.getName()
@@ -59,8 +67,8 @@ public record EvalResult<T>(Class<T> type, T value) {
         return (R) value;
     }
 
-
-
+    /// ### toString
+    /// Returns a concise string representation of the evaluation result.
     @Override
     public String toString() {
         return "EvalResult[type=%s, value=%s]".formatted(
@@ -68,5 +76,4 @@ public record EvalResult<T>(Class<T> type, T value) {
                 value
         );
     }
-
 }
