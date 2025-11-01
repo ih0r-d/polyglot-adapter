@@ -4,9 +4,9 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.ih0rd</groupId>
+    <groupId>io.github.ih0r-d</groupId>
     <artifactId>polyglot-adapter-parent</artifactId>
-    <version>0.0.12</version>
+    <version>0.0.13-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>polyglot-adapter-parent</name>
