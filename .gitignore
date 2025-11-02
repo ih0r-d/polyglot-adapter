@@ -82,3 +82,5 @@ examples/**/target/
 
 # any secret keys
 *.asc
+local/**
+

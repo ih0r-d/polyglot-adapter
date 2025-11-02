@@ -76,4 +76,4 @@ jobs:
       - name: ☁️ Deploy to Maven Central
         if: success()
         run: |
-          mvn clean deploy -P release --batch-mode -DskipTests=false
+          mvn clean deploy -P release --batch-mode -Dgpg.skip=false -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
