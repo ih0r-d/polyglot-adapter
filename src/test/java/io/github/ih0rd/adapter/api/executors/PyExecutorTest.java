@@ -2,15 +2,17 @@ package io.github.ih0rd.adapter.api.executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.ih0rd.adapter.api.context.Language;
-import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
-import io.github.ih0rd.adapter.exceptions.EvaluationException;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
+
 import org.graalvm.polyglot.Context;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import io.github.ih0rd.adapter.api.context.Language;
+import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
+import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
 /** Safe tests for {@link PyExecutor}. These tests avoid requiring real GraalPy VFS. */
 class PyExecutorTest {

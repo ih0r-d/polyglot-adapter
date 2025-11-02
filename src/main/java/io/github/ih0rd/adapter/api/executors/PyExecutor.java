@@ -3,14 +3,16 @@ package io.github.ih0rd.adapter.api.executors;
 import static io.github.ih0rd.adapter.utils.CommonUtils.*;
 import static io.github.ih0rd.adapter.utils.StringCaseConverter.camelToSnake;
 
+import java.nio.file.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.graalvm.polyglot.*;
+
 import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
-import java.nio.file.*;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.graalvm.polyglot.*;
 
 /**
  * Optimized Python executor for GraalPy. Extends BaseExecutor to handle Python class bindings and

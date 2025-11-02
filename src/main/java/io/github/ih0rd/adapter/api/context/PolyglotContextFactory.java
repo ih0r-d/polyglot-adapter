@@ -3,6 +3,7 @@ package io.github.ih0rd.adapter.api.context;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;

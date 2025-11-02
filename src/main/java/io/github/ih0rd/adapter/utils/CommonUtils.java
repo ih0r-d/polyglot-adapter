@@ -1,12 +1,13 @@
 package io.github.ih0rd.adapter.utils;
 
-import io.github.ih0rd.adapter.api.context.EvalResult;
-import io.github.ih0rd.adapter.exceptions.EvaluationException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import io.github.ih0rd.adapter.api.context.EvalResult;
+import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
 /// # CommonUtils
 /// Utility class providing reflection and polyglot adapter helpers.

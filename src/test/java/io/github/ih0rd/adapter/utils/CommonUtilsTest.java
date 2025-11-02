@@ -2,47 +2,75 @@ package io.github.ih0rd.adapter.utils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.ih0rd.adapter.api.context.EvalResult;
-import io.github.ih0rd.adapter.exceptions.EvaluationException;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
+
+import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
 class CommonUtilsTest {
 
-  interface Dummy {
+  interface MathApi {
     int add(int a, int b);
+
+    String greet(String name);
   }
 
-  static class DummyImpl implements Dummy {
+  static class MathImpl implements MathApi {
+    @Override
     public int add(int a, int b) {
       return a + b;
+    }
+
+    @Override
+    public String greet(String name) {
+      return "Hello, " + name;
     }
   }
 
   @Test
-  void invokeMethod_invokesSuccessfully() {
-    DummyImpl impl = new DummyImpl();
-    EvalResult<?> result = CommonUtils.invokeMethod(Dummy.class, impl, "add", 2, 3);
-    assertEquals(5, result.value());
+  void invokeMethod_callsTargetMethod_withoutArgs() {
+    var impl = new MathImpl();
+    var res = CommonUtils.invokeMethod(MathApi.class, impl, "greet", "World");
+    assertEquals("Hello, World", res.value());
   }
 
   @Test
-  void invokeMethod_throwsIfNoSuchMethod() {
-    assertThrows(
-        EvaluationException.class,
-        () -> CommonUtils.invokeMethod(Dummy.class, new DummyImpl(), "missing"));
+  void invokeMethod_coercesWrapperNumbers_forPrimitiveParams() {
+    var impl = new MathImpl();
+    var res =
+        CommonUtils.invokeMethod(MathApi.class, impl, "add", Integer.valueOf(2), Long.valueOf(3));
+    assertEquals(5, res.value());
   }
 
   @Test
-  void getFirstElement_returnsFirstOrNull() {
-    assertNull(CommonUtils.getFirstElement(Set.of()));
+  void invokeMethod_throwsEvaluationException_onError() {
+    var impl = new MathImpl();
+    var ex =
+        assertThrows(
+            EvaluationException.class,
+            () -> CommonUtils.invokeMethod(MathApi.class, impl, "missing"));
+    assertTrue(ex.getMessage().contains("missing"));
   }
 
   @Test
-  void checkIfMethodExists_detectsCorrectly() {
-    assertTrue(CommonUtils.checkIfMethodExists(Dummy.class, "add"));
-    assertFalse(CommonUtils.checkIfMethodExists(Dummy.class, "nope"));
-    assertThrows(
-        EvaluationException.class, () -> CommonUtils.checkIfMethodExists(CommonUtils.class, "any"));
+  void checkIfMethodExists_validatesInterfaceAndPresence() {
+    assertTrue(CommonUtils.checkIfMethodExists(MathApi.class, "add"));
+    assertFalse(CommonUtils.checkIfMethodExists(MathApi.class, "sub"));
+  }
+
+  @Test
+  void checkIfMethodExists_throwsIfNotInterface() {
+    var ex =
+        assertThrows(
+            EvaluationException.class,
+            () -> CommonUtils.checkIfMethodExists(MathImpl.class, "add"));
+    assertTrue(ex.getMessage().contains("must be an interface"));
+  }
+
+  @Test
+  void getFirstElement_handlesEmptyAndNonEmpty() {
+    assertNull(CommonUtils.getFirstElement(java.util.Set.of()));
+    assertEquals(
+        "a",
+        CommonUtils.getFirstElement(new java.util.LinkedHashSet<>(java.util.List.of("a", "b"))));
   }
 }

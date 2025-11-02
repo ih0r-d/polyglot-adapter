@@ -2,13 +2,15 @@ package io.github.ih0rd.adapter.api.executors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import io.github.ih0rd.adapter.api.context.EvalResult;
-import io.github.ih0rd.adapter.api.context.Language;
-import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import java.util.concurrent.ExecutionException;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import io.github.ih0rd.adapter.api.context.EvalResult;
+import io.github.ih0rd.adapter.api.context.Language;
+import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 
 /** Tests for {@link JsExecutor}. */
 class JsExecutorTest {
