@@ -79,3 +79,6 @@ examples/**/target/
 
 # Note: The generic pattern "target/" above already ignores all module targets.
 # These explicit entries are for readability and to cover future nested example modules.
+
+# any secret keys
+*.asc

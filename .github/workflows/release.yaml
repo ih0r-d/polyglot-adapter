@@ -25,8 +25,13 @@ jobs:
           distribution: temurin
           java-version: 25
           cache: maven
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE
 
-      - name: ⚙️ Install Task CLI (Taskfile.dev)
+      - name: ⚙️ Install Task CLI
         run: |
           echo "🛠 Installing Task CLI..."
           sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
@@ -36,8 +41,18 @@ jobs:
       - name: 🔧 Build project
         run: task build
 
-      - name: 🧪 Run tests
-        run: task test
+      - name: 🧪 Run tests with coverage check (min 80%)
+        run: |
+          mvn clean verify org.jacoco:jacoco-maven-plugin:prepare-agent org.jacoco:jacoco-maven-plugin:report
+          COVERED=$(grep -A 1 '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | grep -oP 'covered="\K[0-9]+' | awk '{s+=$1} END{print s}')
+          MISSED=$(grep -A 1 '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | grep -oP 'missed="\K[0-9]+' | awk '{s+=$1} END{print s}')
+          TOTAL=$((COVERED + MISSED))
+          PERCENT=$((100 * COVERED / TOTAL))
+          echo "➡️ Code Coverage: ${PERCENT}%"
+          if [ "$PERCENT" -lt 80 ]; then
+            echo "❌ Coverage below 80%! (${PERCENT}%)"
+            exit 1
+          fi
 
       - name: 📦 Collect JAR artifacts
         run: |
@@ -53,7 +68,12 @@ jobs:
           artifacts: "release-artifacts/*.jar"
           artifactContentType: application/java-archive
           body: |
-            🚀 **Maven Library Release**  
-            Built automatically from tag `${{ github.ref_name }}`  
+            🚀 **Maven Library Release**
+            Built automatically from tag `${{ github.ref_name }}`
             ✅ Includes compiled JAR artifacts.
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ☁️ Deploy to Maven Central
+        if: success()
+        run: |
+          mvn clean deploy -P release --batch-mode -DskipTests=false
