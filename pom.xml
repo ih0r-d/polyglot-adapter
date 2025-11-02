@@ -6,7 +6,7 @@
 
     <groupId>io.github.ih0r-d</groupId>
     <artifactId>polyglot-adapter-parent</artifactId>
-    <version>0.0.13</version>
+    <version>0.0.14-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>polyglot-adapter-parent</name>
@@ -37,6 +37,14 @@
             <url>https://github.com/ih0r-d</url>
         </developer>
     </developers>
+
+    <distributionManagement>
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
