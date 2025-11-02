@@ -6,7 +6,7 @@
 
     <groupId>io.github.ih0r-d</groupId>
     <artifactId>polyglot-adapter-core</artifactId>
-    <version>0.0.14-SNAPSHOT</version>
+    <version>0.0.14</version>
     <packaging>jar</packaging>
 
     <name>polyglot-adapter-core</name>
