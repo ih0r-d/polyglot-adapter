@@ -1,12 +1,15 @@
 package io.github.ih0rd.adapter.api.context;
 
+import io.github.ih0rd.adapter.exceptions.EvaluationException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
+import org.graalvm.polyglot.Value;
 import org.graalvm.python.embedding.GraalPyResources;
 import org.graalvm.python.embedding.VirtualFileSystem;
 
@@ -20,264 +23,214 @@ import org.graalvm.python.embedding.VirtualFileSystem;
 /// polyglot runtime contexts for multiple languages (e.g., **Python**, **JavaScript**).
 ///
 /// Supports:
-/// - Safe default options for GraalPy (`withSafePythonDefaults()`).
-/// - Node.js compatibility mode for GraalJS (`withNodeSupport()`).
-/// - User-defined custom engine options (`option()` / `options()`).
-/// - Virtual File System configuration for embedded resource loading.
+/// - Safe defaults for GraalPy (`withSafePythonDefaults()`).
+/// - Node.js compatibility for GraalJS (`withNodeSupport()`).
+/// - User-defined customization via `apply(Consumer<Context.Builder>)`.
+/// - Extensible HostAccess mappings (`extendHostAccess()`).
+/// - Virtual File System setup for resource loading.
 ///
 /// ---
 /// ## Example
 /// ```java
 /// var ctx = new PolyglotContextFactory.Builder(Language.PYTHON)
 ///     .withSafePythonDefaults()
-///     .allowAllAccess(true)
-///     .option("python.CAPI", "false")
+///     .extendHostAccess(b -> b.targetTypeMapping(
+///         Value.class, java.time.Duration.class,
+///         Value::isString, v -> java.time.Duration.parse(v.asString())
+///     ))
+///     .apply(b -> b.option("python.VerboseFlag", "true"))
 ///     .build();
 /// ```
 ///
-/// ---
-/// ## Thread safety
-/// - Builder is **not thread-safe** (per-instance configuration only).
-/// - Created `Context` objects are thread-confined (one thread at a time).
-///
-/// ---
-/// ## Typical usage
-/// ```java
-/// try (var executor = PyExecutor.createDefault()) {
-///     // The context is automatically managed via BaseExecutor
-/// }
-/// ```
-///
-/// @since 0.0.12
-/// @author ih0rd
+/// @since 0.1.0
+/// Author: ih0rd
 public final class PolyglotContextFactory {
 
-  private PolyglotContextFactory() {}
+    private PolyglotContextFactory() {}
 
-  /// ### createDefault
-  /// Creates a default polyglot {@link Context} for the specified language.
-  ///
-  /// #### Example
-  /// ```java
-  /// var ctx = PolyglotContextFactory.createDefault(Language.PYTHON);
-  /// ```
-  public static Context createDefault(Language language) {
-    return new Builder(language).build();
-  }
-
-  /// ### Builder
-  /// Fluent builder for GraalVM {@link Context} configuration.
-  ///
-  /// ---
-  /// #### Supported languages
-  /// - **Python** (GraalPy)
-  /// - **JavaScript** (GraalJS, optional Node.js support)
-  ///
-  /// #### Example
-  /// ```java
-  /// var ctx = new PolyglotContextFactory.Builder(Language.JS)
-  ///     .withNodeSupport()
-  ///     .option("js.console", "true")
-  ///     .build();
-  /// ```
-  public static final class Builder {
-    private final Language language;
-    private boolean allowExperimentalOptions = false;
-    private boolean allowAllAccess = true;
-    private HostAccess hostAccess = HostAccess.ALL;
-    private boolean allowCreateThread = true;
-    private boolean allowNativeAccess = true;
-    private PolyglotAccess polyglotAccess = PolyglotAccess.ALL;
-    private String resourceDirectory = "org.graalvm.python.vfs";
-    private Path resourcesPath;
-
-    // Internal flags
-    private boolean applySafePythonDefaults = false;
-    private boolean enableNodeSupport = false;
-
-    // User-defined engine options
-    private final Map<String, String> customOptions = new HashMap<>();
-
-    public Builder(Language language) {
-      this.language = language;
-      this.resourcesPath = ResourcesProvider.get(language);
+    /// ### createDefault
+    /// Creates a default polyglot {@link Context} for the given language.
+    public static Context createDefault(Language language) {
+        return new Builder(language).build();
     }
 
-    /// ### resourceDirectory
-    /// Sets the virtual resource directory used by GraalPy.
+    /// # Builder
     ///
-    /// ```java
-    /// builder.resourceDirectory("org.graalvm.python.vfs.custom");
-    /// ```
-    public Builder resourceDirectory(String resourceDir) {
-      if (resourceDir != null && !resourceDir.isBlank()) {
-        this.resourceDirectory = resourceDir;
-      }
-      return this;
-    }
+    /// Fluent builder for GraalVM {@link Context} configuration.
+    public static final class Builder {
+        private final Language language;
+        private Path resourcesPath;
+        private final Map<String, String> customOptions = new HashMap<>();
 
-    /// ### resourcesPath
-    /// Sets a filesystem path for language resources.
-    public Builder resourcesPath(Path path) {
-      this.resourcesPath = path;
-      return this;
-    }
+        private Consumer<Context.Builder> userCustomizer = b -> {};
+        private Consumer<HostAccess.Builder> hostAccessExtender = b -> {};
+        private HostAccess userHostAccess = HostAccess.ALL;
 
-    public Path getResourcesPath() {
-      return resourcesPath;
-    }
+        private boolean enableSafePythonDefaults = false;
+        private boolean enableNodeSupport = false;
+        private String resourceDirectory = "org.graalvm.python.vfs";
 
-    public Builder allowExperimentalOptions(boolean v) {
-      allowExperimentalOptions = v;
-      return this;
-    }
+        public Builder(Language language) {
+            this.language = language;
+            this.resourcesPath = ResourcesProvider.get(language);
+        }
 
-    public Builder allowAllAccess(boolean v) {
-      allowAllAccess = v;
-      return this;
-    }
+        /// ### apply
+        /// Adds a custom modifier for {@link Context.Builder}.
+        public Builder apply(Consumer<Context.Builder> customizer) {
+            if (customizer != null) {
+                this.userCustomizer = this.userCustomizer.andThen(customizer);
+            }
+            return this;
+        }
 
-    public Builder hostAccess(HostAccess v) {
-      hostAccess = v;
-      return this;
-    }
+        /// ### hostAccess
+        /// Replaces the base {@link HostAccess} used by this context.
+        public Builder hostAccess(HostAccess access) {
+            if (access != null) {
+                this.userHostAccess = access;
+            }
+            return this;
+        }
 
-    public Builder allowCreateThread(boolean v) {
-      allowCreateThread = v;
-      return this;
-    }
+        /// ### extendHostAccess
+        /// Adds custom type mappings or access rules.
+        ///
+        /// Example:
+        /// ```java
+        /// .extendHostAccess(b -> b.targetTypeMapping(
+        ///     Value.class, Path.class, Value::isString, v -> Path.of(v.asString())
+        /// ));
+        /// ```
+        public Builder extendHostAccess(Consumer<HostAccess.Builder> extender) {
+            if (extender != null) {
+                this.hostAccessExtender = this.hostAccessExtender.andThen(extender);
+            }
+            return this;
+        }
 
-    public Builder allowNativeAccess(boolean v) {
-      allowNativeAccess = v;
-      return this;
-    }
+        /// ### option
+        /// Adds a single GraalVM engine option.
+        public Builder option(String key, String value) {
+            if (key != null && value != null) {
+                customOptions.put(key, value);
+            }
+            return this;
+        }
 
-    public Builder polyglotAccess(PolyglotAccess v) {
-      polyglotAccess = v;
-      return this;
-    }
+        /// ### options
+        /// Adds multiple engine options.
+        public Builder options(Map<String, String> options) {
+            if (options != null) {
+                customOptions.putAll(options);
+            }
+            return this;
+        }
 
-    /// ### withSafePythonDefaults
-    /// Enables recommended safe defaults for **GraalPy**:
-    /// - Disables C API usage
-    /// - Suppresses experimental feature warnings
-    /// - Redirects logs to `/dev/null`
-    ///
-    /// ```java
-    /// builder.withSafePythonDefaults();
-    /// ```
-    public Builder withSafePythonDefaults() {
-      this.applySafePythonDefaults = true;
-      return this;
-    }
+        /// ### withSafePythonDefaults
+        /// Enables recommended defaults for GraalPy.
+        public Builder withSafePythonDefaults() {
+            this.enableSafePythonDefaults = true;
+            return this;
+        }
 
-    /// ### withNodeSupport
-    /// Enables **Node.js** compatibility mode for **GraalJS**.
-    ///
-    /// Includes:
-    /// - `require()` module support
-    /// - Built-in `fs`, `path`, and `npm install` availability
-    ///
-    /// ```java
-    /// builder.withNodeSupport();
-    /// ```
-    public Builder withNodeSupport() {
-      this.enableNodeSupport = true;
-      return this;
-    }
+        /// ### withNodeSupport
+        /// Enables Node.js compatibility for GraalJS.
+        public Builder withNodeSupport() {
+            this.enableNodeSupport = true;
+            return this;
+        }
 
-    /// ### option
-    /// Adds a single GraalVM engine option.
-    ///
-    /// ```java
-    /// builder.option("python.CAPI", "false");
-    /// ```
-    public Builder option(String key, String value) {
-      if (key != null && value != null) {
-        customOptions.put(key, value);
-      }
-      return this;
-    }
+        /// ### resourcesPath
+        /// Sets a filesystem path for resources.
+        public Builder resourcesPath(Path path) {
+            this.resourcesPath = path;
+            return this;
+        }
 
-    /// ### options
-    /// Adds multiple engine options at once.
-    ///
-    /// ```java
-    /// builder.options(Map.of(
-    ///     "python.CAPI", "false",
-    ///     "log.file", "/dev/null"
-    /// ));
-    /// ```
-    public Builder options(Map<String, String> options) {
-      if (options != null) {
-        customOptions.putAll(options);
-      }
-      return this;
-    }
+        public Path getResourcesPath() {
+            return resourcesPath;
+        }
 
-    /// ### build
-    /// Constructs a configured GraalVM {@link Context} instance.
-    ///
-    /// Applies:
-    /// - VFS setup
-    /// - Host and polyglot access rules
-    /// - Optional safe defaults
-    /// - User-defined engine options
-    public Context build() {
+        /// ### resourceDirectory
+        /// Sets the virtual directory for GraalPy VFS.
+        public Builder resourceDirectory(String dir) {
+            if (dir != null && !dir.isBlank()) {
+                this.resourceDirectory = dir;
+            }
+            return this;
+        }
 
-      Context.Builder builder =
-          switch (language) {
-            case PYTHON -> {
-              var vfs = VirtualFileSystem.newBuilder().resourceDirectory(resourceDirectory).build();
+        /// ### build
+        /// Constructs and initializes a GraalVM {@link Context} instance
+        /// with full interop and experimental options enabled by default.
+        ///
+        /// This configuration follows Oracle's embedding guidelines:
+        /// - full host access for seamless Java ↔ guest interoperability
+        /// - user-extendable HostAccess mappings via extendHostAccess(...)
+        /// - SDK-provided default mappings with LOW precedence
+        public Context build() {
+            Context.Builder builder;
 
-              var pyBuilder = GraalPyResources.contextBuilder(vfs);
-              if (allowExperimentalOptions) {
-                pyBuilder.option("python.IsolateNativeModules", "true");
-              }
-              if (applySafePythonDefaults) {
-                pyBuilder
-                    .option("python.WarnExperimentalFeatures", "false")
-                    .option("engine.WarnInterpreterOnly", "false")
-                    .option("log.file", "/dev/null")
-                    .option("python.CAPI", "false");
-              }
+            switch (language) {
+                case PYTHON -> {
+                    var vfs = VirtualFileSystem.newBuilder().resourceDirectory(resourceDirectory).build();
 
-              customOptions.forEach(pyBuilder::option);
+                    var pyBuilder = GraalPyResources.contextBuilder(vfs)
+                            .allowAllAccess(true)
+                            .allowExperimentalOptions(true);
 
-              yield pyBuilder
-                  .allowExperimentalOptions(allowExperimentalOptions)
-                  .allowAllAccess(allowAllAccess)
-                  .allowHostAccess(hostAccess)
-                  .allowCreateThread(allowCreateThread)
-                  .allowNativeAccess(allowNativeAccess)
-                  .allowPolyglotAccess(polyglotAccess);
+                    if (enableSafePythonDefaults) {
+                        pyBuilder
+                                .option("python.WarnExperimentalFeatures", "false")
+                                .option("engine.WarnInterpreterOnly", "false")
+                                .option("log.file", "/dev/null")
+                                .option("python.CAPI", "false");
+                    }
+
+                    customOptions.forEach(pyBuilder::option);
+                    builder = pyBuilder;
+                }
+
+                case JS -> {
+                    var jsBuilder = Context.newBuilder(language.id())
+                            .allowAllAccess(true)
+                            .allowExperimentalOptions(true);
+
+                    if (enableNodeSupport) {
+                        jsBuilder
+                                .option("js.node", "true")
+                                .option("js.ecmascript-version", "latest")
+                                .option("js.console", "true");
+                    }
+
+                    customOptions.forEach(jsBuilder::option);
+                    builder = jsBuilder;
+                }
+
+                default -> throw new IllegalStateException("Unsupported language: " + language);
             }
 
-            case JS -> {
-              var jsBuilder =
-                  Context.newBuilder(language.id())
-                      .allowExperimentalOptions(allowExperimentalOptions)
-                      .allowAllAccess(allowAllAccess)
-                      .allowHostAccess(hostAccess)
-                      .allowCreateThread(allowCreateThread)
-                      .allowNativeAccess(allowNativeAccess)
-                      .allowPolyglotAccess(polyglotAccess);
+            HostAccess.Builder hostAccessBuilder = HostAccess.newBuilder(HostAccess.ALL);
 
-              if (enableNodeSupport) {
-                jsBuilder
-                    .option("js.node", "true")
-                    .option("js.ecmascript-version", "latest")
-                    .option("js.console", "true");
-              }
+            hostAccessBuilder.targetTypeMapping(
+                    Value.class,
+                    Path.class,
+                    Value::isString,
+                    v -> Path.of(v.asString()),
+                    HostAccess.TargetMappingPrecedence.LOW
+            );
 
-              customOptions.forEach(jsBuilder::option);
+            hostAccessExtender.accept(hostAccessBuilder);
 
-              yield jsBuilder;
-            }
-          };
-      Context ctx = builder.build();
-      ctx.initialize(language.id());
-      return ctx;
+            builder.allowHostAccess(hostAccessBuilder.build());
+            builder.apply(userCustomizer);
+
+            Context ctx = builder.build();
+            ctx.initialize(language.id());
+            return ctx;
+        }
+
+
     }
-  }
 }

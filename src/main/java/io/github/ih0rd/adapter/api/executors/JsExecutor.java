@@ -8,11 +8,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 
-import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
-import io.github.ih0rd.adapter.utils.ValueUnwrapper;
+import org.graalvm.polyglot.Value;
 
 /// # JsExecutor
 ///
@@ -50,7 +49,7 @@ public final class JsExecutor extends BaseExecutor {
   /// ## create
   /// Creates a JavaScript executor using a custom context builder.
   public static JsExecutor create(PolyglotContextFactory.Builder builder) {
-    return BaseExecutor.create(Language.JS, builder, JsExecutor::new);
+    return BaseExecutor.create(builder, JsExecutor::new);
   }
 
   /// ## languageId
@@ -63,7 +62,7 @@ public final class JsExecutor extends BaseExecutor {
   /// ## evaluate(methodName, memberTargetType, args)
   /// Executes a JS function either from global scope or from a loaded JS file.
   @Override
-  protected <T> EvalResult<?> evaluate(
+  protected <T> Value evaluate(
       String methodName, Class<T> memberTargetType, Object... args) {
     try {
       var source = getFileSource(memberTargetType);
@@ -77,7 +76,7 @@ public final class JsExecutor extends BaseExecutor {
   /// ## evaluate(methodName, memberTargetType)
   /// Executes a JS function without arguments.
   @Override
-  protected <T> EvalResult<?> evaluate(String methodName, Class<T> memberTargetType) {
+  protected <T> Value evaluate(String methodName, Class<T> memberTargetType) {
     return evaluate(methodName, memberTargetType, new Object[0]);
   }
 
@@ -130,12 +129,9 @@ public final class JsExecutor extends BaseExecutor {
   /// ## evaluate(code)
   /// Evaluates inline JS code and returns unwrapped value.
   @Override
-  public <T> EvalResult<?> evaluate(String code) {
+  public <T> Value evaluate(String code) {
     try {
-      var result = context.eval(Source.newBuilder(languageId(), code, "inline.js").buildLiteral());
-      if (result == null || result.isNull()) return EvalResult.of(null);
-      T unwrapped = ValueUnwrapper.unwrap(result);
-      return EvalResult.of(unwrapped);
+      return context.eval(Source.newBuilder(languageId(), code, "inline.js").buildLiteral());
     } catch (Exception e) {
       throw new EvaluationException("Error during JS inline execution", e);
     }

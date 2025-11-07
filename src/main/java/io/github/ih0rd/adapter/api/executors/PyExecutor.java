@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.graalvm.polyglot.*;
 
-import io.github.ih0rd.adapter.api.context.EvalResult;
 import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
@@ -32,14 +31,14 @@ public final class PyExecutor extends BaseExecutor {
   }
 
   @Override
-  protected <T> EvalResult<?> evaluate(
+  protected <T> Value evaluate(
       String methodName, Class<T> memberTargetType, Object... args) {
     var instance = mapValue(memberTargetType);
     return invokeMethod(memberTargetType, instance, methodName, args);
   }
 
   @Override
-  protected <T> EvalResult<?> evaluate(String methodName, Class<T> memberTargetType) {
+  protected <T> Value evaluate(String methodName, Class<T> memberTargetType) {
     var instance = mapValue(memberTargetType);
     return invokeMethod(memberTargetType, instance, methodName);
   }
@@ -49,7 +48,7 @@ public final class PyExecutor extends BaseExecutor {
   }
 
   public static PyExecutor create(PolyglotContextFactory.Builder builder) {
-    return create(Language.PYTHON, builder, PyExecutor::new);
+    return create(builder, PyExecutor::new);
   }
 
   private <T> T mapValue(Class<T> memberTargetType) {
