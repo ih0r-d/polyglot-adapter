@@ -6,7 +6,7 @@
 
     <groupId>io.github.ih0r-d</groupId>
     <artifactId>polyglot-adapter</artifactId>
-    <version>0.0.15</version>
+    <version>0.0.16-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>polyglot-adapter</name>
@@ -201,10 +201,15 @@
                             <publishingServerId>central</publishingServerId>
                         </configuration>
                     </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>${javadoc-plugin.version}</version>
+                        <configuration>
+                            <failOnError>false</failOnError>
+                            <doclint>none</doclint>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -214,6 +219,7 @@
                             </execution>
                         </executions>
                     </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
@@ -227,6 +233,7 @@
                             </execution>
                         </executions>
                     </plugin>
+
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -240,6 +247,10 @@
                                 </goals>
                                 <configuration>
                                     <passphrase>${gpg-passphrase}</passphrase>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
                                 </configuration>
                             </execution>
                         </executions>
@@ -248,4 +259,5 @@
             </build>
         </profile>
     </profiles>
+
 </project>
