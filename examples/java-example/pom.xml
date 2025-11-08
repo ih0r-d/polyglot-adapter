@@ -27,7 +27,7 @@
         <dependency>
             <groupId>io.github.ih0r-d</groupId>
             <artifactId>polyglot-adapter</artifactId>
-            <version>0.0.17</version>
+            <version>0.0.18-SNAPSHOT</version>
         </dependency>
 
         <dependency>
