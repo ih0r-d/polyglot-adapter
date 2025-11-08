@@ -65,8 +65,40 @@ polyglot-adapter/
   <version>0.1.0</version>
 </dependency>
 ```
+---
+## 🧩 Optional Language Runtimes (Maven)
+
+> Add only the runtimes you actually use. Marked as `optional` to avoid transitive pulls.
+
+### 🐍 GraalPy
+```xml
+<dependency>
+  <groupId>org.graalvm.python</groupId>
+  <artifactId>python-embedding</artifactId>
+  <version>25.0.1</version>
+  <optional>true</optional>
+</dependency>
+<dependency>
+  <groupId>org.graalvm.python</groupId>
+  <artifactId>python-launcher</artifactId>
+  <version>25.0.1</version>
+  <optional>true</optional>
+</dependency>
+```
+
+### 🕸 GraalJS
+```xml
+<dependency>
+  <groupId>org.graalvm.js</groupId>
+  <artifactId>js</artifactId>
+  <version>25.0.1</version>
+  <type>pom</type>
+  <optional>true</optional>
+</dependency>
+```
 
 ---
+
 
 ## 🧠 Usage Example (Python)
 

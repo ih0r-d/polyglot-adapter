@@ -7,11 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
 
 import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
-import org.graalvm.polyglot.Value;
 
 /// # JsExecutor
 ///
@@ -62,8 +62,7 @@ public final class JsExecutor extends BaseExecutor {
   /// ## evaluate(methodName, memberTargetType, args)
   /// Executes a JS function either from global scope or from a loaded JS file.
   @Override
-  protected <T> Value evaluate(
-      String methodName, Class<T> memberTargetType, Object... args) {
+  protected <T> Value evaluate(String methodName, Class<T> memberTargetType, Object... args) {
     try {
       var source = getFileSource(memberTargetType);
       context.eval(source);

@@ -6,8 +6,9 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.github.ih0rd.adapter.exceptions.EvaluationException;
 import org.graalvm.polyglot.Value;
+
+import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
 /// # CommonUtils
 /// Utility class providing reflection and polyglot adapter helpers.
@@ -57,39 +58,38 @@ public final class CommonUtils {
   /// #### Throws
   /// {@link EvaluationException} if reflection fails or the method cannot be invoked.
   public static <T> Value invokeMethod(
-          Class<T> targetType, T targetInstance, String methodName, Object... args) {
+      Class<T> targetType, T targetInstance, String methodName, Object... args) {
 
-      try {
-          Method method = getMethodByName(targetType, methodName);
-          MethodHandle handle =
-                  HANDLE_CACHE.computeIfAbsent(
-                          method,
-                          m -> {
-                              try {
-                                  return LOOKUP.unreflect(m);
-                              } catch (IllegalAccessException e) {
-                                  throw new EvaluationException("Cannot unreflect method: " + m, e);
-                              }
-                          });
+    try {
+      Method method = getMethodByName(targetType, methodName);
+      MethodHandle handle =
+          HANDLE_CACHE.computeIfAbsent(
+              method,
+              m -> {
+                try {
+                  return LOOKUP.unreflect(m);
+                } catch (IllegalAccessException e) {
+                  throw new EvaluationException("Cannot unreflect method: " + m, e);
+                }
+              });
 
-          Object result;
-          if (args != null && args.length > 0) {
-              Object[] coercedArgs = coerceArguments(method.getParameterTypes(), args);
-              result = handle.bindTo(targetInstance).invokeWithArguments(coercedArgs);
-          } else {
-              result = handle.bindTo(targetInstance).invoke();
-          }
-
-          // Wrap Java object result into Graal Value for uniformity
-          return Value.asValue(result);
-
-      } catch (Throwable e) {
-          throw new EvaluationException("Could not invoke method '%s'".formatted(methodName), e);
+      Object result;
+      if (args != null && args.length > 0) {
+        Object[] coercedArgs = coerceArguments(method.getParameterTypes(), args);
+        result = handle.bindTo(targetInstance).invokeWithArguments(coercedArgs);
+      } else {
+        result = handle.bindTo(targetInstance).invoke();
       }
+
+      // Wrap Java object result into Graal Value for uniformity
+      return Value.asValue(result);
+
+    } catch (Throwable e) {
+      throw new EvaluationException("Could not invoke method '%s'".formatted(methodName), e);
+    }
   }
 
-
-    private static <T> Method getMethodByName(Class<T> targetType, String methodName)
+  private static <T> Method getMethodByName(Class<T> targetType, String methodName)
       throws NoSuchMethodException {
     Class<?>[] parameterTypes = getParameterTypesByMethodName(targetType, methodName);
     return targetType.getMethod(methodName, parameterTypes);

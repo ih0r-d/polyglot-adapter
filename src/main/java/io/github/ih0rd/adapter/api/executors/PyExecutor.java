@@ -31,8 +31,7 @@ public final class PyExecutor extends BaseExecutor {
   }
 
   @Override
-  protected <T> Value evaluate(
-      String methodName, Class<T> memberTargetType, Object... args) {
+  protected <T> Value evaluate(String methodName, Class<T> memberTargetType, Object... args) {
     var instance = mapValue(memberTargetType);
     return invokeMethod(memberTargetType, instance, methodName, args);
   }
