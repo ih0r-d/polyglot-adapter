@@ -17,8 +17,9 @@ import org.graalvm.python.embedding.VirtualFileSystem;
 ///
 /// ---
 /// ## Overview
-/// Provides a flexible builder API for creating isolated or shared
-/// polyglot runtime contexts for multiple languages (e.g., **Python**, **JavaScript**).
+/// Provides a flexible builder API for creating isolated or shared polyglot runtime contexts for
+/// multiple languages
+/// (e.g., **Python**, **JavaScript**).
 ///
 /// Supports:
 /// - Safe defaults for GraalPy (`withSafePythonDefaults()`).
@@ -35,13 +36,12 @@ import org.graalvm.python.embedding.VirtualFileSystem;
 ///     .extendHostAccess(b -> b.targetTypeMapping(
 ///         Value.class, java.time.Duration.class,
 ///         Value::isString, v -> java.time.Duration.parse(v.asString())
-///     ))
+/// ))
 ///     .apply(b -> b.option("python.VerboseFlag", "true"))
 ///     .build();
 /// ```
 ///
-/// @since 0.1.0
-/// Author: ih0rd
+/// @since 0.0.16 Author: ih0r-d
 public final class PolyglotContextFactory {
 
   private PolyglotContextFactory() {}
@@ -56,6 +56,7 @@ public final class PolyglotContextFactory {
   ///
   /// Fluent builder for GraalVM {@link Context} configuration.
   public static final class Builder {
+
     private final Language language;
     private Path resourcesPath;
     private final Map<String, String> customOptions = new HashMap<>();
@@ -160,8 +161,9 @@ public final class PolyglotContextFactory {
     }
 
     /// ### build
-    /// Constructs and initializes a GraalVM {@link Context} instance
-    /// with full interop and experimental options enabled by default.
+    /// Constructs and initializes a GraalVM {@link Context} instance with full interop and
+    // experimental options
+    /// enabled by default.
     ///
     /// This configuration follows Oracle's embedding guidelines:
     /// - full host access for seamless Java ↔ guest interoperability
@@ -181,10 +183,11 @@ public final class PolyglotContextFactory {
 
           if (enableSafePythonDefaults) {
             pyBuilder
-                .option("python.WarnExperimentalFeatures", "false")
                 .option("engine.WarnInterpreterOnly", "false")
-                .option("log.file", "/dev/null")
-                .option("python.CAPI", "false");
+                .option("python.WarnExperimentalFeatures", "false")
+                .option("python.CAPI", "false")
+                .option("python.VerboseFlag", "false")
+                .option("log.file", "/dev/null");
           }
 
           customOptions.forEach(pyBuilder::option);
@@ -193,7 +196,10 @@ public final class PolyglotContextFactory {
 
         case JS -> {
           var jsBuilder =
-              Context.newBuilder(language.id()).allowAllAccess(true).allowExperimentalOptions(true);
+              Context.newBuilder(language.id())
+                  .allowAllAccess(true)
+                  .allowExperimentalOptions(true)
+                  .option("engine.WarnInterpreterOnly", "false");
 
           if (enableNodeSupport) {
             jsBuilder.option("js.ecmascript-version", "latest").option("js.console", "true");
@@ -206,7 +212,7 @@ public final class PolyglotContextFactory {
         default -> throw new IllegalStateException("Unsupported language: " + language);
       }
 
-      HostAccess.Builder hostAccessBuilder = HostAccess.newBuilder(HostAccess.ALL);
+      HostAccess.Builder hostAccessBuilder = HostAccess.newBuilder(userHostAccess);
 
       hostAccessBuilder.targetTypeMapping(
           Value.class,

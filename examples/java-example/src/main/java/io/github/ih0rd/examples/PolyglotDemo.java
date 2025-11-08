@@ -4,11 +4,10 @@ import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.api.executors.JsExecutor;
 import io.github.ih0rd.adapter.api.executors.PyExecutor;
-import io.github.ih0rd.examples.contracts.LibrariesApi;
 import io.github.ih0rd.examples.contracts.ForecastService;
-import org.graalvm.polyglot.Value;
+import io.github.ih0rd.examples.contracts.LibrariesApi;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import org.graalvm.polyglot.Value;
 
 public class PolyglotDemo {
 
@@ -20,8 +19,6 @@ public class PolyglotDemo {
     private static final int PERIOD = 2;
 
     void main() {
-        System.setProperty("polyglot.engine.WarnInterpreterOnly", "false");
-
         IO.println("=== Polyglot Adapter Demo (GraalVM 25) ===");
         step1CustomPython();
         step2InlinePython();
@@ -35,7 +32,10 @@ public class PolyglotDemo {
         IO.println("\n[STEP 1] Python Context + LibrariesApi");
         var builder = new PolyglotContextFactory.Builder(Language.PYTHON)
                 .withSafePythonDefaults()
-                .apply(b -> b.option("python.VerboseFlag", "false"));
+                .apply(b -> b.option("python.VerboseFlag", "false")
+                                    .option("python.WarnExperimentalFeatures", "false")
+                                    .option("log.file", "/dev/null")
+                );
 
         try (var executor = PyExecutor.create(builder)) {
             LibrariesApi api = executor.bind(LibrariesApi.class);
@@ -50,11 +50,11 @@ public class PolyglotDemo {
         var builder = new PolyglotContextFactory.Builder(Language.PYTHON).withSafePythonDefaults();
         try (var executor = PyExecutor.create(builder)) {
             String code = """
-                import math
-                nums = [3,4,5]
-                squares = [n**2 for n in nums]
-                {"sqrt81": math.sqrt(81), "sum": sum(squares)}
-                """;
+                    import math
+                    nums = [3,4,5]
+                    squares = [n**2 for n in nums]
+                    {"sqrt81": math.sqrt(81), "sum": sum(squares)}
+                    """;
             Value result = executor.evaluate(code);
             IO.println("Result → " + result);
         }
@@ -78,11 +78,11 @@ public class PolyglotDemo {
         var builder = new PolyglotContextFactory.Builder(Language.JS).withNodeSupport();
         try (var executor = JsExecutor.create(builder)) {
             String js = """
-                const arr = [1,2,3,4,5];
-                const sum = arr.reduce((a,b)=>a+b,0);
-                const avg = sum/arr.length;
-                ({sum, avg});
-                """;
+                    const arr = [1,2,3,4,5];
+                    const sum = arr.reduce((a,b)=>a+b,0);
+                    const avg = sum/arr.length;
+                    ({sum, avg});
+                    """;
             Value result = executor.evaluate(js);
             IO.println("JS → " + result);
         }
