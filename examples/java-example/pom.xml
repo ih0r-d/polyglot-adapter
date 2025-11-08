@@ -13,20 +13,38 @@
 
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
-        <graalpy-plugin.version>25.0.0</graalpy-plugin.version>
+        <graalpy-plugin.version>25.0.1</graalpy-plugin.version>
         <junit.version>5.13.4</junit.version>
 
         <python.package.1>faker==26.0.0</python.package.1>
         <python.package.2>tabulate==0.9.0</python.package.2>
         <python.package.3>numpy==2.2.4</python.package.3>
+        <graal.version>25.0.1</graal.version>
     </properties>
 
     <dependencies>
         <!-- Core SDK -->
         <dependency>
-            <groupId>io.github.ih0rd</groupId>
-            <artifactId>polyglot-adapter-core</artifactId>
-            <version>0.0.12-SNAPSHOT</version>
+            <groupId>io.github.ih0r-d</groupId>
+            <artifactId>polyglot-adapter</artifactId>
+            <version>0.0.16</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.graalvm.python</groupId>
+            <artifactId>python-launcher</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.python</groupId>
+            <artifactId>python-embedding</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+            <version>${graal.version}</version>
+            <type>pom</type>
         </dependency>
 
         <!-- Test framework -->

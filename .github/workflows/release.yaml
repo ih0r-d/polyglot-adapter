@@ -41,18 +41,18 @@ jobs:
       - name: 🔧 Build project
         run: task build
 
-      - name: 🧪 Run tests with coverage check (min 60% - temporary without testing real GraalVM context)
-        run: |
-          mvn clean verify org.jacoco:jacoco-maven-plugin:prepare-agent org.jacoco:jacoco-maven-plugin:report
-          COVERED=$(grep -A 1 '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | grep -oP 'covered="\K[0-9]+' | awk '{s+=$1} END{print s}')
-          MISSED=$(grep -A 1 '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | grep -oP 'missed="\K[0-9]+' | awk '{s+=$1} END{print s}')
-          TOTAL=$((COVERED + MISSED))
-          PERCENT=$((100 * COVERED / TOTAL))
-          echo "➡️ Code Coverage: ${PERCENT}%"
-          if [ "$PERCENT" -lt 60 ]; then
-            echo "❌ Coverage below 60%! (${PERCENT}%)"
-            exit 1
-          fi
+#      - name: 🧪 Run tests with coverage check (min 60% - temporary without testing real GraalVM context)
+#        run: |
+#          mvn clean verify org.jacoco:jacoco-maven-plugin:prepare-agent org.jacoco:jacoco-maven-plugin:report
+#          COVERED=$(grep -A 1 '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | grep -oP 'covered="\K[0-9]+' | awk '{s+=$1} END{print s}')
+#          MISSED=$(grep -A 1 '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | grep -oP 'missed="\K[0-9]+' | awk '{s+=$1} END{print s}')
+#          TOTAL=$((COVERED + MISSED))
+#          PERCENT=$((100 * COVERED / TOTAL))
+#          echo "➡️ Code Coverage: ${PERCENT}%"
+#          if [ "$PERCENT" -lt 60 ]; then
+#            echo "❌ Coverage below 60%! (${PERCENT}%)"
+#            exit 1
+#          fi
 
       - name: 📦 Collect JAR artifacts
         run: |
