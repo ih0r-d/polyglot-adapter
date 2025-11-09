@@ -65,7 +65,7 @@ jobs:
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          mvn -s settings.xml clean deploy -P release -Dgpg.skip=false -Denv.GPG_PASSPHRASE="${GPG_PASSPHRASE}"
+          mvn clean deploy -P release -Dgpg.skip=false -Denv.GPG_PASSPHRASE="${GPG_PASSPHRASE}"
 
       - name: 🏷️ Create GitHub Release
         uses: ncipollo/release-action@v1
