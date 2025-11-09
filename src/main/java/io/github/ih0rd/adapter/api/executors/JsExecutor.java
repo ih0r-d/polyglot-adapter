@@ -1,6 +1,5 @@
 package io.github.ih0rd.adapter.api.executors;
 
-import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -11,6 +10,7 @@ import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
+import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
 /// # JsExecutor

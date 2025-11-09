@@ -1,6 +1,5 @@
 package io.github.ih0rd.adapter.api.executors;
 
-import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,6 +21,7 @@ import org.graalvm.polyglot.Value;
 
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.api.context.ResourcesProvider;
+import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
 /// # BaseExecutor

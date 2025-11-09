@@ -83,4 +83,5 @@ examples/**/target/
 # any secret keys
 *.asc
 local/**
+settings-local.xml
 

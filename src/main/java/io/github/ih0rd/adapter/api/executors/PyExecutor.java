@@ -3,7 +3,6 @@ package io.github.ih0rd.adapter.api.executors;
 import static io.github.ih0rd.adapter.utils.CommonUtils.*;
 import static io.github.ih0rd.adapter.utils.StringCaseConverter.camelToSnake;
 
-import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import java.nio.file.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.graalvm.polyglot.*;
 
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
+import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
 /**
