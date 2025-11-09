@@ -4,6 +4,7 @@
 ![Java](https://img.shields.io/badge/JDK-25%2B-007396?logo=openjdk)
 ![GraalVM](https://img.shields.io/badge/GraalVM-25.x-FF6F00?logo=oracle)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.ih0r-d/polyglot-adapter.svg?label=maven%20central)](https://central.sonatype.com/artifact/io.github.ih0r-d/polyglot-adapter)
+[![codecov](https://codecov.io/gh/ih0r-d/polyglot-adapter/graph/badge.svg)](https://codecov.io/gh/ih0r-d/testcontainers-with-coverage)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
 ---
