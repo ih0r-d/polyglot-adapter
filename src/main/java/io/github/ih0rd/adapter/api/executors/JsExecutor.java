@@ -1,5 +1,6 @@
 package io.github.ih0rd.adapter.api.executors;
 
+import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -9,7 +10,6 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
-import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
@@ -43,7 +43,7 @@ public final class JsExecutor extends BaseExecutor {
   /// ## createDefault
   /// Creates a default JavaScript executor using default GraalJS context.
   public static JsExecutor createDefault() {
-    return BaseExecutor.createDefault(Language.JS, JsExecutor::new);
+    return BaseExecutor.createDefault(SupportedLanguage.JS, JsExecutor::new);
   }
 
   /// ## create
@@ -56,7 +56,7 @@ public final class JsExecutor extends BaseExecutor {
   /// Returns the GraalVM language identifier (`"js"`).
   @Override
   public String languageId() {
-    return Language.JS.id();
+    return SupportedLanguage.JS.id();
   }
 
   /// ## evaluate(methodName, memberTargetType, args)
@@ -85,7 +85,7 @@ public final class JsExecutor extends BaseExecutor {
     return SOURCE_CACHE.computeIfAbsent(
         memberTargetType,
         cls -> {
-          return loadScript(Language.JS, cls.getSimpleName());
+          return loadScript(SupportedLanguage.JS, cls.getSimpleName());
         });
   }
 

@@ -9,7 +9,7 @@ public final class ResourcesProvider {
 
   private ResourcesProvider() {}
 
-  public static Path get(Language lang) {
+  public static Path get(SupportedLanguage lang) {
     return switch (lang) {
       case PYTHON -> Paths.get(System.getProperty(PROP_PY_RESOURCES, DEFAULT_PY_RESOURCES));
       case JS -> Paths.get(System.getProperty(PROP_JS_RESOURCES, DEFAULT_JS_RESOURCES));
