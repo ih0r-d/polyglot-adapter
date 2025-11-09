@@ -1,13 +1,13 @@
 package io.github.ih0rd.adapter.api.context;
 
-public enum Language {
+public enum SupportedLanguage {
   PYTHON("python", ".py"),
   JS("js", ".js");
 
   private final String id;
   private final String ext;
 
-  Language(String id, String ext) {
+  SupportedLanguage(String id, String ext) {
     this.id = id;
     this.ext = ext;
   }

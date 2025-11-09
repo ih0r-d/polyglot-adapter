@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test;
 class LanguageTest {
   @Test
   void id_returnsPython() {
-    assertEquals("python", Language.PYTHON.id());
+    assertEquals("python", SupportedLanguage.PYTHON.id());
   }
 
   @Test
   void id_returnsJs() {
-    assertEquals("js", Language.JS.id());
+    assertEquals("js", SupportedLanguage.JS.id());
   }
 }

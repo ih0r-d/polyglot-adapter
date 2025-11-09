@@ -1,5 +1,6 @@
 package io.github.ih0rd.adapter.api.executors;
 
+import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,7 +20,6 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
-import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.api.context.ResourcesProvider;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
@@ -130,10 +130,10 @@ public abstract class BaseExecutor implements AutoCloseable {
   /// Builds a default executor for the specified language.
   ///
   /// ```java
-  /// var pyExec = BaseExecutor.createDefault(Language.PYTHON, PyExecutor::new);
+  /// var pyExec = BaseExecutor.createDefault(SupportedLanguage.PYTHON, PyExecutor::new);
   /// ```
   protected static <E extends BaseExecutor> E createDefault(
-      Language lang, BiFunction<Context, Path, E> constructor) {
+      SupportedLanguage lang, BiFunction<Context, Path, E> constructor) {
     var builder = new PolyglotContextFactory.Builder(lang);
     return constructor.apply(builder.build(), builder.getResourcesPath());
   }
@@ -182,10 +182,10 @@ public abstract class BaseExecutor implements AutoCloseable {
   /// ---
   /// ### Example
   /// ```java
-  /// var source = loadScript(Language.PYTHON, "my_api");
+  /// var source = loadScript(SupportedLanguage.PYTHON, "my_api");
   /// context.eval(source);
   /// ```
-  protected Source loadScript(Language lang, String name) {
+  protected Source loadScript(SupportedLanguage lang, String name) {
     String fileName = name + lang.ext();
     Path basePath = ResourcesProvider.get(lang);
     String resourcePath = lang.name().toLowerCase() + "/" + fileName;

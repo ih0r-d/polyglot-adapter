@@ -31,7 +31,7 @@ import org.graalvm.python.embedding.VirtualFileSystem;
 /// ---
 /// ## Example
 /// ```java
-/// var ctx = new PolyglotContextFactory.Builder(Language.PYTHON)
+/// var ctx = new PolyglotContextFactory.Builder(SupportedLanguage.PYTHON)
 ///     .withSafePythonDefaults()
 ///     .extendHostAccess(b -> b.targetTypeMapping(
 ///         Value.class, java.time.Duration.class,
@@ -48,7 +48,7 @@ public final class PolyglotContextFactory {
 
   /// ### createDefault
   /// Creates a default polyglot {@link Context} for the given language.
-  public static Context createDefault(Language language) {
+  public static Context createDefault(SupportedLanguage language) {
     return new Builder(language).build();
   }
 
@@ -57,7 +57,7 @@ public final class PolyglotContextFactory {
   /// Fluent builder for GraalVM {@link Context} configuration.
   public static final class Builder {
 
-    private final Language language;
+    private final SupportedLanguage language;
     private Path resourcesPath;
     private final Map<String, String> customOptions = new HashMap<>();
 
@@ -69,7 +69,7 @@ public final class PolyglotContextFactory {
     private boolean enableNodeSupport = false;
     private String resourceDirectory = "org.graalvm.python.vfs";
 
-    public Builder(Language language) {
+    public Builder(SupportedLanguage language) {
       this.language = language;
       this.resourcesPath = ResourcesProvider.get(language);
     }

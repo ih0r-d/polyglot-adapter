@@ -8,7 +8,7 @@ class ResourcesProviderTest {
 
   @Test
   void get_returnsPythonAndJsPaths() {
-    assertTrue(ResourcesProvider.get(Language.PYTHON).toString().endsWith("python"));
-    assertTrue(ResourcesProvider.get(Language.JS).toString().endsWith("js"));
+    assertTrue(ResourcesProvider.get(SupportedLanguage.PYTHON).toString().endsWith("python"));
+    assertTrue(ResourcesProvider.get(SupportedLanguage.JS).toString().endsWith("js"));
   }
 }

@@ -32,7 +32,7 @@ class ResourcesProviderOverrideTest {
     System.setProperty("py.polyglot-resources.path", customPy.toString());
     System.setProperty("js.polyglot-resources.path", customJs.toString());
 
-    assertEquals(customPy, ResourcesProvider.get(Language.PYTHON));
-    assertEquals(customJs, ResourcesProvider.get(Language.JS));
+    assertEquals(customPy, ResourcesProvider.get(SupportedLanguage.PYTHON));
+    assertEquals(customJs, ResourcesProvider.get(SupportedLanguage.JS));
   }
 }

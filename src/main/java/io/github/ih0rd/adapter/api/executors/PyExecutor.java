@@ -3,13 +3,13 @@ package io.github.ih0rd.adapter.api.executors;
 import static io.github.ih0rd.adapter.utils.CommonUtils.*;
 import static io.github.ih0rd.adapter.utils.StringCaseConverter.camelToSnake;
 
+import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import java.nio.file.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.graalvm.polyglot.*;
 
-import io.github.ih0rd.adapter.api.context.Language;
 import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
@@ -27,7 +27,7 @@ public final class PyExecutor extends BaseExecutor {
 
   @Override
   public String languageId() {
-    return Language.PYTHON.id();
+    return SupportedLanguage.PYTHON.id();
   }
 
   @Override
@@ -43,7 +43,7 @@ public final class PyExecutor extends BaseExecutor {
   }
 
   public static PyExecutor createDefault() {
-    return createDefault(Language.PYTHON, PyExecutor::new);
+    return createDefault(SupportedLanguage.PYTHON, PyExecutor::new);
   }
 
   public static PyExecutor create(PolyglotContextFactory.Builder builder) {
@@ -89,7 +89,7 @@ public final class PyExecutor extends BaseExecutor {
         memberTargetType,
         cls -> {
           var interfaceName = cls.getSimpleName();
-          return loadScript(Language.PYTHON, camelToSnake(interfaceName));
+          return loadScript(SupportedLanguage.PYTHON, camelToSnake(interfaceName));
         });
   }
 }
