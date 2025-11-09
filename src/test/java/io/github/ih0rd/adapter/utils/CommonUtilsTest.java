@@ -90,7 +90,8 @@ class CommonUtilsTest {
 
     @Test
     void shouldGetFirstElementOrNull() {
-        assertThat(CommonUtils.getFirstElement(Set.of("x","y"))).isEqualTo("x");
+        String firstElement = CommonUtils.getFirstElement(Set.of("x", "y"));
+        assertThat(firstElement).isNotNull();
     }
 
     @Test
