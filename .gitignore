@@ -13,6 +13,8 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 polyglot-adapter-core/.mvn/timing.properties
+.flattened-pom.xml
+.flattened-pom.pom
 
 # IntelliJ IDEA
 .idea/
