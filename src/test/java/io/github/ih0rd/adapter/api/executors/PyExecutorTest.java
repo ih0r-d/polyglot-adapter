@@ -1,98 +1,124 @@
 package io.github.ih0rd.adapter.api.executors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.Set;
-
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-
 import io.github.ih0rd.adapter.DummyApi;
-import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
+import io.github.ih0rd.adapter.api.context.PolyglotHelper;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 import io.github.ih0rd.adapter.utils.CommonUtils;
+import java.nio.file.Path;
+import java.util.Set;
+import org.graalvm.polyglot.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.*;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class PyExecutorTest {
 
-  @Mock Context context;
-  @Mock Value bindings;
-  @Mock Value pyMember;
-  @Mock Value pyInstance;
-  @Mock Value evalResult;
-  @Mock DummyApi dummyApi;
+    @Mock Context context;
+    @Mock Value bindings;
+    @Mock Value pyMember;
+    @Mock Value pyInstance;
+    @Mock Value evalResult;
+    @Mock DummyApi dummyApi;
 
-  Path fakePath = Path.of("src", "test", "python");
-  PyExecutor executor;
+    Path fakePath = Path.of("src", "test", "python");
+    PyExecutor executor;
 
-  @BeforeEach
-  void setup() {
-    System.setProperty("py.polyglot-resources.path", fakePath.toAbsolutePath().toString());
-
-    executor = new PyExecutor(context, fakePath);
-    BaseExecutor.SOURCE_CACHE.clear();
-    try {
-      var inst = PyExecutor.class.getDeclaredField("INSTANCE_CACHE");
-      inst.setAccessible(true);
-      ((Map<?, ?>) inst.get(null)).clear();
-    } catch (Exception ignored) {
+    @BeforeEach
+    void setup() {
+        System.setProperty("py.polyglot-resources.path", fakePath.toAbsolutePath().toString());
+        executor = new PyExecutor(context, fakePath);
     }
-  }
 
-  @Test
-  void shouldThrowOnInvalidClassName() {
-    when(context.getPolyglotBindings()).thenReturn(bindings);
-    when(bindings.getMemberKeys()).thenReturn(Set.of("WrongName"));
-    when(bindings.getMember("WrongName")).thenReturn(pyMember);
-    when(pyMember.newInstance()).thenReturn(pyInstance);
-    when(pyInstance.as(DummyApi.class)).thenReturn(dummyApi);
-
-    try (MockedStatic<CommonUtils> st = mockStatic(CommonUtils.class)) {
-      st.when(() -> CommonUtils.getFirstElement(any())).thenReturn("WrongName");
-
-      DummyApi api = executor.bind(DummyApi.class);
-      assertThatThrownBy(() -> api.add(1, 1))
-          .isInstanceOf(EvaluationException.class)
-          .hasMessageContaining("must equal Python class name");
+    @Test
+    void shouldReturnLanguageId() {
+        assertThat(executor.languageId()).isEqualTo("python");
     }
-  }
 
-  @Test
-  void shouldReturnLanguageId() {
-    assertThat(executor.languageId()).isEqualTo("python");
-  }
+    @Test
+    void shouldThrowWhenInterfaceDoesNotMatchPythonClass() {
+        when(context.getPolyglotBindings()).thenReturn(bindings);
+        when(bindings.getMemberKeys()).thenReturn(Set.of("WrongName"));
+        when(bindings.getMember("WrongName")).thenReturn(pyMember);
+        when(pyMember.newInstance()).thenReturn(pyInstance);
+        when(pyInstance.as(DummyApi.class)).thenReturn(dummyApi);
 
-  @Test
-  void shouldCreateFromBuilder() {
-    PolyglotContextFactory.Builder builder = mock(PolyglotContextFactory.Builder.class);
-    when(builder.build()).thenReturn(context);
-    when(builder.getResourcesPath()).thenReturn(fakePath);
-    assertThat(PyExecutor.create(builder)).isNotNull();
-  }
+        try (MockedStatic<CommonUtils> st = mockStatic(CommonUtils.class)) {
+            st.when(() -> CommonUtils.getFirstElement(any())).thenReturn("WrongName");
+            assertThatThrownBy(() -> executor.bind(DummyApi.class))
+                    .isInstanceOf(EvaluationException.class)
+                    .hasMessageContaining("must match Python class");
+        }
+    }
 
-  @Test
-  void shouldComputeFileSource() throws Exception {
-    PyExecutor spyExec = Mockito.spy(executor);
-    doReturn(mock(Source.class)).when(spyExec).loadScript(any(), any());
-    var method = PyExecutor.class.getDeclaredMethod("getFileSource", Class.class);
-    method.setAccessible(true);
-    Object result = method.invoke(spyExec, DummyApi.class);
-    assertThat(result).isNotNull();
-  }
+    @Test
+    void shouldInvokePythonMethodSuccessfully() {
+        when(context.getPolyglotBindings()).thenReturn(bindings);
+        when(bindings.getMemberKeys()).thenReturn(Set.of("DummyApi"));
+        when(bindings.getMember("DummyApi")).thenReturn(pyMember);
+        when(pyMember.newInstance()).thenReturn(pyInstance);
+        when(pyInstance.getMember("add")).thenReturn(evalResult);
+        when(evalResult.canExecute()).thenReturn(true);
+        when(evalResult.execute(any(Object[].class))).thenReturn(Value.asValue(5));
+
+        try (MockedStatic<CommonUtils> st = mockStatic(CommonUtils.class)) {
+            st.when(() -> CommonUtils.getFirstElement(any())).thenReturn("DummyApi");
+            DummyApi api = executor.bind(DummyApi.class);
+            assertThat(api.add(1, 2)).isEqualTo(5);
+        }
+    }
+
+    @Test
+    void shouldThrowIfMethodNotFound() throws Exception {
+        when(pyInstance.getMember("missing")).thenReturn(null);
+        var m =
+                PyExecutor.class.getDeclaredMethod(
+                        "invokeMethod", Class.class, Value.class, String.class, Object[].class);
+        m.setAccessible(true);
+        assertThatThrownBy(() -> m.invoke(executor, DummyApi.class, pyInstance, "missing", new Object[]{}))
+                .hasRootCauseInstanceOf(EvaluationException.class);
+    }
+
+    @Test
+    void shouldEvaluateInlinePythonCode() {
+        when(context.eval(any(Source.class))).thenReturn(evalResult);
+        when(evalResult.asInt()).thenReturn(42);
+        var result = executor.evaluate("1+2");
+        assertThat(result).isEqualTo(evalResult);
+    }
+
+    @Test
+    void shouldThrowOnEvalError() {
+        when(context.eval(any(Source.class))).thenThrow(new RuntimeException("boom"));
+        assertThatThrownBy(() -> executor.evaluate("1/0"))
+                .isInstanceOf(EvaluationException.class)
+                .hasMessageContaining("Error during Python eval");
+    }
+
+    @Test
+    @SuppressWarnings("resource")
+    void shouldCreateDefaultExecutor() {
+        try (MockedStatic<PolyglotHelper> helper = mockStatic(PolyglotHelper.class)) {
+            Context ctx = mock(Context.class);
+            helper.when(() -> PolyglotHelper.createPythonContext(true)).thenReturn(ctx);
+
+            var exec = PyExecutor.createDefault();
+            assertThat(exec).isNotNull();
+            helper.verify(() -> PolyglotHelper.createPythonContext(true));
+        }
+    }
+
+
+    @Test
+    void shouldCloseAndClearCache() {
+        executor.close();
+        assertThatCode(executor::close).doesNotThrowAnyException();
+    }
 }
