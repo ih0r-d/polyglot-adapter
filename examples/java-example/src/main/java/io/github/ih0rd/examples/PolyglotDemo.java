@@ -1,7 +1,6 @@
 package io.github.ih0rd.examples;
 
-import io.github.ih0rd.adapter.api.context.Language;
-import io.github.ih0rd.adapter.api.context.PolyglotContextFactory;
+import io.github.ih0rd.adapter.api.context.SupportedLanguage;
 import io.github.ih0rd.adapter.api.executors.JsExecutor;
 import io.github.ih0rd.adapter.api.executors.PyExecutor;
 import io.github.ih0rd.examples.contracts.ForecastService;
@@ -30,7 +29,7 @@ public class PolyglotDemo {
     /// ### Step 1: Python context with safe defaults and LibrariesApi binding
     private static void step1CustomPython() {
         IO.println("\n[STEP 1] Python Context + LibrariesApi");
-        var builder = new PolyglotContextFactory.Builder(Language.PYTHON)
+        var builder = new PolyglotContextFactory.Builder(SupportedLanguage.PYTHON)
                 .withSafePythonDefaults()
                 .apply(b -> b.option("python.VerboseFlag", "false")
                                     .option("python.WarnExperimentalFeatures", "false")
@@ -47,7 +46,7 @@ public class PolyglotDemo {
     /// ### Step 2: Inline Python evaluation block
     private static void step2InlinePython() {
         IO.println("\n[STEP 2] Inline Python Evaluation");
-        var builder = new PolyglotContextFactory.Builder(Language.PYTHON).withSafePythonDefaults();
+        var builder = new PolyglotContextFactory.Builder(SupportedLanguage.PYTHON).withSafePythonDefaults();
         try (var executor = PyExecutor.create(builder)) {
             String code = """
                     import math
@@ -75,7 +74,7 @@ public class PolyglotDemo {
     /// ### Step 4: Inline JavaScript evaluation block
     private static void step4InlineJs() {
         IO.println("\n[STEP 4] JavaScript Inline Block");
-        var builder = new PolyglotContextFactory.Builder(Language.JS).withNodeSupport();
+        var builder = new PolyglotContextFactory.Builder(SupportedLanguage.JS).withNodeSupport();
         try (var executor = JsExecutor.create(builder)) {
             String js = """
                     const arr = [1,2,3,4,5];
