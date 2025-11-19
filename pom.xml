@@ -19,7 +19,7 @@
 
         <staging-maven-plugin.version>1.6.13</staging-maven-plugin.version>
         <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
-        <spotless-plugin.version>3.0.0</spotless-plugin.version>
+        <spotless-plugin.version>3.1.0</spotless-plugin.version>
         <jacoco-plugin.version>0.8.14</jacoco-plugin.version>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <flatten-plugin.version>1.7.3</flatten-plugin.version>
