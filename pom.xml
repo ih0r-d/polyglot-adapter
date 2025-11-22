@@ -32,7 +32,9 @@
         <graal.version>25.0.1</graal.version>
         <junit.version>6.0.1</junit.version>
         <mockito.version>5.20.0</mockito.version>
+        <mockito-inline.version>5.2.0</mockito-inline.version>
         <assertj.version>3.27.6</assertj.version>
+        <bcpg.version>1.81</bcpg.version>
     </properties>
 
     <licenses>
@@ -95,6 +97,11 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpg-jdk18on</artifactId>
+            <version>${bcpg.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.graalvm.js</groupId>
             <artifactId>js</artifactId>
             <version>${graal.version}</version>
@@ -111,6 +118,12 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>${mockito-inline.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

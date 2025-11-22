@@ -1,4 +1,4 @@
-package io.github.ih0rd.adapter.api.context;
+package io.github.ih0rd.adapter.context;
 
 public enum SupportedLanguage {
   PYTHON("python", ".py"),
