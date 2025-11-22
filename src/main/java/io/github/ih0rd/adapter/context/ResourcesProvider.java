@@ -1,6 +1,9 @@
-package io.github.ih0rd.adapter.api.context;
+package io.github.ih0rd.adapter.context;
 
-import static io.github.ih0rd.adapter.utils.Constants.*;
+import static io.github.ih0rd.adapter.utils.Constants.DEFAULT_JS_RESOURCES;
+import static io.github.ih0rd.adapter.utils.Constants.DEFAULT_PY_RESOURCES;
+import static io.github.ih0rd.adapter.utils.Constants.PROP_JS_RESOURCES;
+import static io.github.ih0rd.adapter.utils.Constants.PROP_PY_RESOURCES;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

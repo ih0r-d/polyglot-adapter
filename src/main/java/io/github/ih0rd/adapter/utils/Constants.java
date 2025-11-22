@@ -25,11 +25,6 @@ package io.github.ih0rd.adapter.utils;
 /// - JavaScript → `${user.dir}/src/main/js`
 ///
 /// ---
-/// ### Example
-/// ```java
-/// Path pyDir = Paths.get(Constants.PROJ_PY_RESOURCES_PATH);
-/// Path jsDir = Paths.get(Constants.PROJ_JS_RESOURCES_PATH);
-/// ```
 public interface Constants {
 
   /// ### System property keys
@@ -45,9 +40,4 @@ public interface Constants {
   /// Fallback directories used when no `-D` property is provided.
   String DEFAULT_PY_RESOURCES = USER_DIR + "/src/main/python";
   String DEFAULT_JS_RESOURCES = USER_DIR + "/src/main/js";
-
-  /// ### Effective resource paths
-  /// Dynamically resolved directories based on system properties or defaults.
-  String PROJ_PY_RESOURCES_PATH = System.getProperty(PROP_PY_RESOURCES, DEFAULT_PY_RESOURCES);
-  String PROJ_JS_RESOURCES_PATH = System.getProperty(PROP_JS_RESOURCES, DEFAULT_JS_RESOURCES);
 }
