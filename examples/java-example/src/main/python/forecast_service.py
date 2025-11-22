@@ -1,4 +1,5 @@
 import numpy as np
+import polyglot
 
 class ForecastService:
     """
@@ -19,6 +20,8 @@ class ForecastService:
         :param season_period: assumed period of seasonality (e.g. 4 for quarterly)
         :return: dict {forecast, slope, intercept, season_amp, season_period}
         """
+        print("PYTHON STARTED FORECAST_SERVICE")
+
         y = np.array(y, dtype=float)
         n = len(y)
         x = np.arange(n)
@@ -52,5 +55,4 @@ class ForecastService:
 
 
 # Export class for Java interop
-import polyglot
 polyglot.export_value('ForecastService', ForecastService)
