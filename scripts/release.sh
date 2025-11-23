@@ -23,10 +23,26 @@ MAVEN_OPTS="$MAVEN_OPTS" ./mvnw -q -ntp -B \
   versions:set -DnewVersion="$VERSION" \
   -DgenerateBackupPoms=false -DprocessAllModules=true 2>/dev/null
 
-git add pom.xml */pom.xml
+# Changelog via git-cliff
+if [ ! -f CHANGELOG.md ]; then
+  echo "📝 Generating initial CHANGELOG.md with git-cliff..."
+  git cliff --config .git-cliff.toml --output CHANGELOG.md
+else
+  echo "📝 Updating CHANGELOG.md for $VERSION with git-cliff (prepend)..."
+  git cliff --config .git-cliff.toml \
+    --unreleased \
+    --tag "$VERSION" \
+    --prepend CHANGELOG.md
+fi
+
+# Stage POMs + changelog
+git add pom.xml CHANGELOG.md
+git add */pom.xml 2>/dev/null || true
+
 git commit -m "Release $VERSION" >/dev/null 2>&1 || true
 
 git tag -a "v$VERSION" -m "Release $VERSION"
+
 git push origin "v$VERSION" >/dev/null 2>&1
 git push origin main >/dev/null 2>&1
 

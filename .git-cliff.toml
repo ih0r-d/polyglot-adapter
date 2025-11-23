@@ -1,0 +1,84 @@
+[git]
+# Tags like v0.0.19, v0.0.20, v0.0.21, ...
+tag_pattern = "v[0-9]*.[0-9]*.[0-9]*"
+
+[cli]
+tag_format = "v{{version}}"
+
+[changelog]
+header = """# Polyglot-adapter changelog
+
+All notable changes to **polyglot-adapter** (GraalVM polyglot adapter) will be documented in this file.
+
+"""
+
+body = """
+{% if version %}## [{{ version }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}## [Unreleased]
+{% endif %}
+
+{% if commits | filter(attribute="group", value="Added") | length > 0 -%}
+### ➕ Added
+{% for commit in commits | filter(attribute="group", value="Added") -%}
+- {{ commit.message | trim }} ({{ commit.id | truncate(length=7, end="") }})
+{% endfor %}
+
+{% endif -%}
+{% if commits | filter(attribute="group", value="Changed") | length > 0 -%}
+### ⚙️ Changed
+{% for commit in commits | filter(attribute="group", value="Changed") -%}
+- {{ commit.message | trim }} ({{ commit.id | truncate(length=7, end="") }})
+{% endfor %}
+
+{% endif -%}
+{% if commits | filter(attribute="group", value="Fixed") | length > 0 -%}
+### ✅ Fixed
+{% for commit in commits | filter(attribute="group", value="Fixed") -%}
+- {{ commit.message | trim }} ({{ commit.id | truncate(length=7, end="") }})
+{% endfor %}
+
+{% endif -%}
+{% if commits | filter(attribute="group", value="Internal") | length > 0 -%}
+### 🧪 Internal
+{% for commit in commits | filter(attribute="group", value="Internal") -%}
+- {{ commit.message | trim }} ({{ commit.id | truncate(length=7, end="") }})
+{% endfor %}
+
+{% endif -%}
+"""
+
+footer = """
+---
+
+Generated for **polyglot-adapter** from git history.
+"""
+
+# feat: ... -> Added
+[[git.commit_parsers]]
+message = "^feat"
+group = "Added"
+
+# fix: ... -> Fixed
+[[git.commit_parsers]]
+message = "^fix"
+group = "Fixed"
+
+# refactor / perf -> Changed
+[[git.commit_parsers]]
+message = "^(refactor|perf)"
+group = "Changed"
+
+# build / ci / docs / test / chore -> Internal
+[[git.commit_parsers]]
+message = "^(build|ci|docs|test|chore)"
+group = "Internal"
+
+# Release commits (both "Release X" and "chore(release): X") -> skip
+[[git.commit_parsers]]
+message = "^(Release|release|chore\\(release\\))"
+skip = true
+
+# Fallback: anything else -> Internal
+[[git.commit_parsers]]
+message = ".*"
+group = "Internal"
