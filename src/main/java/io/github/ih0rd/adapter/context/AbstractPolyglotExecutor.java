@@ -8,37 +8,56 @@ import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
+import io.github.ih0rd.adapter.exceptions.BindingException;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
+import io.github.ih0rd.adapter.exceptions.InvocationException;
+import io.github.ih0rd.adapter.exceptions.ScriptNotFoundException;
 
-/// # BaseExecutor
+/// # AbstractPolyglotExecutor
 ///
 /// Common base class for language-specific executors.
 ///
 /// Responsibilities:
-/// - Hold a GraalVM {@link Context} and a filesystem {@link Path} for resources
-/// - Provide a generic {@link #bind(Class)} implementation via dynamic proxies
-/// - Provide inline evaluation and script loading helpers
-public abstract class BaseExecutor implements AutoCloseable {
+/// - hold a GraalVM {@link Context} and a filesystem {@link Path} for resources
+/// - provide a generic {@link #bind(Class)} implementation via dynamic proxies
+/// - provide inline evaluation, script loading, caching and basic runtime info
+public abstract class AbstractPolyglotExecutor implements AutoCloseable {
 
   /// ### context
   /// Underlying GraalVM {@link Context} instance.
-  private final Context context;
+  ///
+  /// Lifecycle:
+  /// - when created via {@link #createDefault}, the executor owns this context
+  ///   and {@link #close()} will close it;
+  /// - when created with an external context (e.g. PyExecutor.createWithContext),
+  ///   the caller is responsible for context lifecycle.
+  protected final Context context;
 
   /// ### resourcesPath
   /// Base filesystem path for language-specific scripts (Python/JS files).
   protected final Path resourcesPath;
 
-  /// ### BaseExecutor
+  /// ### sourceCache
+  /// Per-executor cache of compiled {@link Source} per interface type.
+  protected final Map<Class<?>, Source> sourceCache = new ConcurrentHashMap<>();
+
+  /// ### AbstractPolyglotExecutor
   ///
-  /// @param context       GraalVM {@link Context} instance
-  /// @param resourcesPath base path for guest language resources
-  protected BaseExecutor(Context context, Path resourcesPath) {
+  /// @param context       GraalVM {@link Context} instance (must not be null)
+  /// @param resourcesPath base path for guest language resources (may be null)
+  protected AbstractPolyglotExecutor(Context context, Path resourcesPath) {
+    if (context == null) {
+      throw new IllegalArgumentException("Context must not be null");
+    }
     this.context = context;
     this.resourcesPath = resourcesPath;
   }
@@ -87,7 +106,7 @@ public abstract class BaseExecutor implements AutoCloseable {
           Source.newBuilder(languageId(), code, "inline." + languageId()).buildLiteral();
       return context.eval(source);
     } catch (Exception e) {
-      throw new EvaluationException("Error during " + languageId() + " code execution", e);
+      throw new InvocationException("Error during " + languageId() + " code execution", e);
     }
   }
 
@@ -120,6 +139,24 @@ public abstract class BaseExecutor implements AutoCloseable {
             });
   }
 
+  /// ### validateBinding
+  ///
+  /// Validates that the given Java interface can be bound to a guest implementation.
+  ///
+  /// Default implementation only checks for null and then throws
+  /// {@link UnsupportedOperationException}. Language-specific executors
+  /// (e.g. Python/JS) should override this to perform real validation.
+  ///
+  /// @param iface interface to validate
+  /// @param <T>   interface type
+  public <T> void validateBinding(Class<T> iface) {
+    if (iface == null) {
+      throw new IllegalArgumentException("Interface type must not be null");
+    }
+    throw new UnsupportedOperationException(
+        "Binding validation is not implemented for executor: " + getClass().getSimpleName());
+  }
+
   /// ### createDefault
   ///
   /// Creates a default executor instance:
@@ -131,19 +168,13 @@ public abstract class BaseExecutor implements AutoCloseable {
   /// @param constructor executor constructor taking {@link Context} and {@link Path}
   /// @param <E>         executor subtype
   /// @return configured executor instance
-  protected static <E extends BaseExecutor> E createDefault(
+  @SuppressWarnings("resource") // context is closed by executor.close()
+  protected static <E extends AbstractPolyglotExecutor> E createDefault(
       SupportedLanguage language, BiFunction<Context, Path, E> constructor) {
 
     Path resourcesPath = ResourcesProvider.get(language);
     Context context = PolyglotHelper.newContext(language);
     return constructor.apply(context, resourcesPath);
-  }
-
-  /// ### context
-  ///
-  /// @return underlying {@link Context}
-  protected Context context() {
-    return context;
   }
 
   /// ### callFunction
@@ -159,11 +190,13 @@ public abstract class BaseExecutor implements AutoCloseable {
       Value fn = bindings.getMember(methodName);
 
       if (fn == null || !fn.canExecute()) {
-        throw new EvaluationException("Function not found: " + methodName);
+        throw new BindingException("Function not found: " + methodName);
       }
       return fn.execute(args);
+    } catch (BindingException e) {
+      throw e;
     } catch (Exception e) {
-      throw new EvaluationException("Error executing function: " + methodName, e);
+      throw new InvocationException("Error executing function: " + methodName, e);
     }
   }
 
@@ -197,7 +230,7 @@ public abstract class BaseExecutor implements AutoCloseable {
     // filesystem fallback
     Path fsPath = resourcesPath.resolve(fileName);
     if (!Files.exists(fsPath)) {
-      throw new EvaluationException(
+      throw new ScriptNotFoundException(
           "Cannot find script: %s (classpath '%s', filesystem '%s')"
               .formatted(fileName, resourcePath, fsPath));
     }
@@ -207,6 +240,40 @@ public abstract class BaseExecutor implements AutoCloseable {
     } catch (IOException e) {
       throw new EvaluationException("Failed to build source from file: " + fsPath, e);
     }
+  }
+
+  /// ### clearSourceCache
+  ///
+  /// Clears the cached sources.
+  public void clearSourceCache() {
+    sourceCache.clear();
+  }
+
+  /// ### clearAllCaches
+  ///
+  /// Clears all caches maintained by this executor.
+  /// Subclasses may override to clear additional caches.
+  public void clearAllCaches() {
+    clearSourceCache();
+  }
+
+  /// ### runtimeInfo
+  ///
+  /// Returns a metadata snapshot of this executor instance.
+  ///
+  /// Intended for logging, debugging and health checks.
+  ///
+  /// Implementations may extend the returned map with
+  /// language-specific information (cache sizes, bound interfaces, etc.).
+  ///
+  /// @return mutable {@link Map} with metadata key/value pairs
+  public Map<String, Object> metadata() {
+    Map<String, Object> info = new LinkedHashMap<>();
+    info.put("executorType", getClass().getName());
+    info.put("languageId", languageId());
+    info.put("resourcesPath", resourcesPath != null ? resourcesPath.toString() : null);
+    info.put("sourceCacheSize", sourceCache.size());
+    return info;
   }
 
   /// ### close

@@ -11,6 +11,7 @@ import org.graalvm.python.embedding.VirtualFileSystem;
 ///
 /// Lightweight helper for creating GraalVM {@link Context} instances with optional builder
 // customization.
+
 ///
 /// Responsibilities:
 /// - Selects the proper builder for a given {@link SupportedLanguage}
@@ -24,6 +25,7 @@ public final class PolyglotHelper {
   ///
   /// Creates a new {@link Context} for the given language and applies the provided builder
   // customizer (if not
+
   /// {@code null}).
   ///
   /// ```java
@@ -50,11 +52,16 @@ public final class PolyglotHelper {
         builder =
             GraalPyResources.contextBuilder(vfs)
                 .allowAllAccess(true)
-                .allowExperimentalOptions(true);
+                .allowExperimentalOptions(true)
+                .option("engine.WarnInterpreterOnly", "false")
+                .option("python.WarnExperimentalFeatures", "false");
       }
       case JS -> {
         builder =
-            Context.newBuilder(language.id()).allowAllAccess(true).allowExperimentalOptions(true);
+            Context.newBuilder(language.id())
+                .allowAllAccess(true)
+                .allowExperimentalOptions(true)
+                .option("engine.WarnInterpreterOnly", "false");
       }
       default -> throw new IllegalStateException("Unsupported language: " + language);
     }

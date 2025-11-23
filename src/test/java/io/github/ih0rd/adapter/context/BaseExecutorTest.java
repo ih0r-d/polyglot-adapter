@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 
 @SuppressWarnings({"unchecked", "resource"})
-class BaseExecutorTest {
+class AbstractPolyglotExecutorTest {
 
-  static class TestExecutor extends BaseExecutor {
+  static class TestExecutor extends AbstractPolyglotExecutor {
 
     TestExecutor(Context ctx, Path path) {
       super(ctx, path);
@@ -125,7 +125,7 @@ class BaseExecutorTest {
     when(bindings.getMember("foo")).thenReturn(fn);
     when(fn.canExecute()).thenReturn(true);
 
-    BaseExecutor exec = new TestExecutor(ctx, Path.of("/tmp"));
+    AbstractPolyglotExecutor exec = new TestExecutor(ctx, Path.of("/tmp"));
     exec.callFunction("foo", 1, 2);
 
     verify(fn).execute(1, 2);
@@ -139,7 +139,7 @@ class BaseExecutorTest {
     when(ctx.getBindings("python")).thenReturn(bindings);
     when(bindings.getMember("foo")).thenReturn(null);
 
-    BaseExecutor exec = new TestExecutor(ctx, Path.of("/tmp"));
+    AbstractPolyglotExecutor exec = new TestExecutor(ctx, Path.of("/tmp"));
 
     assertThrows(EvaluationException.class, () -> exec.callFunction("foo"));
   }
@@ -155,10 +155,11 @@ class BaseExecutorTest {
       var spyProvider = mockStatic(ResourcesProvider.class);
       spyProvider.when(() -> ResourcesProvider.get(any())).thenReturn(p);
 
-      BaseExecutor ex = BaseExecutor.createDefault(SupportedLanguage.PYTHON, TestExecutor::new);
+      AbstractPolyglotExecutor ex =
+          AbstractPolyglotExecutor.createDefault(SupportedLanguage.PYTHON, TestExecutor::new);
 
       assertNotNull(ex);
-      assertSame(ctx, ex.context());
+      assertSame(ctx, ex.context);
       spyProvider.close();
     }
   }
@@ -166,7 +167,7 @@ class BaseExecutorTest {
   @Test
   void loadScriptFromClasspath() {
     Context ctx = mock(Context.class);
-    BaseExecutor exec = new TestExecutor(ctx, Path.of("/tmp"));
+    AbstractPolyglotExecutor exec = new TestExecutor(ctx, Path.of("/tmp"));
 
     String cp = "python/test.py";
     InputStream is = new ByteArrayInputStream("print('ok')".getBytes(StandardCharsets.UTF_8));
@@ -185,7 +186,7 @@ class BaseExecutorTest {
     Path script = temp.resolve("test.py");
     Files.writeString(script, "print('fs')");
 
-    BaseExecutor exec = new TestExecutor(mock(Context.class), temp);
+    AbstractPolyglotExecutor exec = new TestExecutor(mock(Context.class), temp);
 
     assertNotNull(exec.loadScript(SupportedLanguage.PYTHON, "test"));
   }
@@ -195,7 +196,7 @@ class BaseExecutorTest {
     Context ctx = mock(Context.class);
     Path p = Path.of("/tmp/does_not_exist_xyz");
 
-    BaseExecutor exec = new TestExecutor(ctx, p);
+    AbstractPolyglotExecutor exec = new TestExecutor(ctx, p);
 
     assertThrows(
         EvaluationException.class, () -> exec.loadScript(SupportedLanguage.PYTHON, "missing"));
@@ -204,7 +205,7 @@ class BaseExecutorTest {
   @Test
   void closeClosesContext() {
     Context ctx = mock(Context.class);
-    BaseExecutor exec = new TestExecutor(ctx, Path.of("/tmp"));
+    AbstractPolyglotExecutor exec = new TestExecutor(ctx, Path.of("/tmp"));
     exec.close();
     verify(ctx).close();
   }
