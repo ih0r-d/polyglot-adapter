@@ -34,7 +34,7 @@
         <mockito.version>5.20.0</mockito.version>
         <mockito-inline.version>5.2.0</mockito-inline.version>
         <assertj.version>3.27.6</assertj.version>
-        <bcpg.version>1.82</bcpg.version>
+        <bcpg.version>1.83</bcpg.version>
     </properties>
 
     <licenses>
