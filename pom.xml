@@ -1,17 +1,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.ih0r-d</groupId>
-    <artifactId>polyglot-adapter</artifactId>
+    <artifactId>polyglot-adapter-parent</artifactId>
     <version>0.0.21-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
-    <name>polyglot-adapter</name>
+    <name>polyglot-adapter parent</name>
     <description>Lightweight Java SDK for executing polyglot code via GraalVM</description>
     <url>https://github.com/ih0r-d/polyglot-adapter</url>
+
+    <modules>
+        <module>polyglot-bom</module>
+        <module>polyglot-core</module>
+        <!-- потім -->
+        <!-- <module>polyglot-spring-starter</module> -->
+    </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,6 +36,7 @@
         <source-plugin.version>3.3.1</source-plugin.version>
         <gpg-plugin.version>3.2.8</gpg-plugin.version>
         <gpg-passphrase>${env.GPG_PASSPHRASE}</gpg-passphrase>
+
         <graal.version>25.0.1</graal.version>
         <junit.version>6.0.1</junit.version>
         <mockito.version>5.20.0</mockito.version>
@@ -43,12 +51,14 @@
             <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
+
     <scm>
         <connection>scm:git:git://github.com/ih0r-d/polyglot-adapter.git</connection>
         <developerConnection>scm:git:ssh://github.com:ih0r-d/polyglot-adapter.git</developerConnection>
         <url>https://github.com/ih0r-d/polyglot-adapter</url>
         <tag>HEAD</tag>
     </scm>
+
     <developers>
         <developer>
             <id>ih0rd</id>
@@ -56,6 +66,7 @@
             <url>https://github.com/ih0r-d</url>
         </developer>
     </developers>
+
     <distributionManagement>
         <snapshotRepository>
             <id>central</id>
@@ -66,6 +77,7 @@
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
     <pluginRepositories>
         <pluginRepository>
             <id>central</id>
@@ -73,71 +85,82 @@
         </pluginRepository>
     </pluginRepositories>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.graalvm.sdk</groupId>
-            <artifactId>graal-sdk</artifactId>
-            <version>${graal.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.polyglot</groupId>
-            <artifactId>polyglot</artifactId>
-            <version>${graal.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.python</groupId>
-            <artifactId>python-launcher</artifactId>
-            <version>${graal.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.python</groupId>
-            <artifactId>python-embedding</artifactId>
-            <version>${graal.version}</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpg-jdk18on</artifactId>
-            <version>${bcpg.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.graalvm.js</groupId>
-            <artifactId>js</artifactId>
-            <version>${graal.version}</version>
-            <type>pom</type>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
-            <version>${mockito-inline.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
-        </dependency>
-    </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <!-- core itself -->
+            <dependency>
+                <groupId>io.github.ih0r-d</groupId>
+                <artifactId>polyglot-adapter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- GraalVM core -->
+            <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graal.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.polyglot</groupId>
+                <artifactId>polyglot</artifactId>
+                <version>${graal.version}</version>
+            </dependency>
+
+            <!-- GraalPy -->
+            <dependency>
+                <groupId>org.graalvm.python</groupId>
+                <artifactId>python-launcher</artifactId>
+                <version>${graal.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.python</groupId>
+                <artifactId>python-embedding</artifactId>
+                <version>${graal.version}</version>
+            </dependency>
+
+            <!-- GraalJS -->
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js</artifactId>
+                <version>${graal.version}</version>
+                <type>pom</type>
+            </dependency>
+
+            <!-- crypto -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpg-jdk18on</artifactId>
+                <version>${bcpg.version}</version>
+            </dependency>
+
+            <!-- test deps -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito-inline.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
@@ -221,7 +244,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
     </build>
 
