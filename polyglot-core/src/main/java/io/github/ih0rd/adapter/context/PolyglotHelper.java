@@ -24,8 +24,7 @@ public final class PolyglotHelper {
   /// ### newContext
   ///
   /// Creates a new {@link Context} for the given language and applies the provided builder
-  // customizer (if not
-
+  /// customizer (if not
   /// {@code null}).
   ///
   /// ```java
