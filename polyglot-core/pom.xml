@@ -13,7 +13,7 @@
     <artifactId>polyglot-adapter</artifactId>
     <packaging>jar</packaging>
 
-    <name>polyglot-adapter core</name>
+    <name>polyglot-adapter-core</name>
     <description>Core library for executing polyglot code via GraalVM</description>
 
     <dependencies>
