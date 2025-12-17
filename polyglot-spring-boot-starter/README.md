@@ -1,194 +1,317 @@
-/// # Polyglot Adapter: Spring Boot Starter
+# polyglot-spring-boot-starter
 
-This module provides autoconfiguration for the `polyglot-core` library, making it seamless to embed and interact with Python and JavaScript code within a Spring Boot application.
+![Build](https://img.shields.io/badge/build-maven-blue?logo=apache-maven)
+![Java](https://img.shields.io/badge/JDK-25%2B-007396?logo=openjdk)
+![Spring%20Boot](https://img.shields.io/badge/Spring%20Boot-4.x-6DB33F?logo=springboot)
+![GraalVM](https://img.shields.io/badge/GraalVM-25.x-FF6F00?logo=oracle)
+![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
-/// ## 1. Features
+**Zero-config Spring Boot 4 starter** for `polyglot-adapter` that wires **Python / JavaScript** executors, registers **@PolyglotClient** interfaces as Spring beans, and exposes **Actuator + Micrometer** observability.
 
-- **Auto-Configuration**: Automatically configures `PyExecutor` and `JsExecutor` beans.
-- **Externalized Configuration**: A rich set of properties under the `polyglot.*` prefix for fine-grained control.
-- **Dependency Injection**: A convenient `PolyglotExecutors` facade to inject executors into your services.
-- **Lifecycle Management**: Handles executor creation, warmup, and script preloading on startup.
-- **Validation**: Can validate Java-to-guest bindings on startup to fail-fast.
-- **Actuator Integration**: Exposes executor status and metadata via `/actuator/health` and `/actuator/info`.
-- **Micrometer Metrics**: (Optional) Registers basic metrics for monitoring executor state.
+---
 
-/// ## 2. Getting Started
+## Features
 
-Add the starter as a dependency to your project's `pom.xml`.
+- Autoconfigures `PyExecutor` / `JsExecutor` when enabled via `polyglot.*`
+- `PolyglotExecutors` facade bean for safe optional access
+- `@PolyglotClient` + `@EnablePolyglotClients` scanning → creates client beans via `FactoryBean`
+- Fail-fast validation for missing runtimes (configurable)
+- Startup summary log (deterministic, production-friendly)
+- Actuator: `/actuator/info` and `/actuator/health` contributors
+- Micrometer: basic gauges for executor state / caches
+
+---
+
+## Requirements
+
+- **Spring Boot 4.x**
+- **JDK 25+**
+- **GraalVM 25.x+**
+- Add language runtime dependencies (Python/JS) only if you enable them
+
+---
+
+## Installation
+
+Import the BOM (recommended) and add the starter:
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.ih0r-d</groupId>
+      <artifactId>polyglot-bom</artifactId>
+      <version>${polyglot.version}</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+
+<dependencies>
+  <dependency>
+    <groupId>io.github.ih0r-d</groupId>
+    <artifactId>polyglot-spring-boot-starter</artifactId>
+  </dependency>
+</dependencies>
+```
+
+### Add runtimes (only if you enable them)
+
+#### GraalPy
 
 ```xml
 <dependency>
-    <groupId>io.github.ih0rd</groupId>
-    <artifactId>polyglot-spring-boot-starter</artifactId>
-    <version>${polyglot-adapter.version}</version>
+  <groupId>org.graalvm.python</groupId>
+  <artifactId>python-embedding</artifactId>
+  <version>25.0.1</version>
+</dependency>
+<dependency>
+  <groupId>org.graalvm.python</groupId>
+  <artifactId>python-launcher</artifactId>
+  <version>25.0.1</version>
 </dependency>
 ```
 
-The starter will be active by default. You can disable it by setting `polyglot.core.enabled=false` in your `application.properties`.
+#### GraalJS
 
-/// ## 3. Core Usage
+```xml
+<dependency>
+  <groupId>org.graalvm.js</groupId>
+  <artifactId>js</artifactId>
+  <version>25.0.1</version>
+  <type>pom</type>
+</dependency>
+```
 
-### 3.1. Accessing Executors
+---
 
-The easiest way to use the polyglot executors is to inject the `PolyglotExecutors` facade into your Spring components.
+## Auto-configuration
+
+The starter registers auto-configurations via:
+
+```
+src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+```
+
+Main configurations:
+
+- `PolyglotAutoConfiguration` (core, properties, runtime checks, startup summary)
+- `PolyglotPythonAutoConfiguration` (PyExecutor + optional warmup)
+- `PolyglotJsAutoConfiguration` (JsExecutor + optional warmup)
+- `PolyglotActuatorAutoConfiguration` (Info/Health)
+- `PolyglotMetricsAutoConfiguration` (Micrometer binder)
+
+---
+
+## Configuration (`polyglot.*`)
+
+All properties are under the `polyglot` prefix.
+
+> Defaults are chosen for developer experience. Enable languages explicitly.
+
+### Full property table
+
+| Property                                |    Type |            Default | Description                                                                        |
+|-----------------------------------------|--------:|-------------------:|------------------------------------------------------------------------------------|
+| `polyglot.core.enabled`                 | boolean |             `true` | Master switch for the starter.                                                     |
+| `polyglot.core.fail-fast`               | boolean |             `true` | If `true`, startup fails on critical errors (missing runtime, warmup failure).     |
+| `polyglot.core.log-metadata-on-startup` | boolean |             `true` | Logs startup summary (see below).                                                  |
+| `polyglot.core.log-level`               |  string |            `debug` | Starter log level hint (used for messages where applicable).                       |
+| `polyglot.python.enabled`               | boolean |            `false` | Enables Python executor auto-config.                                               |
+| `polyglot.python.resources-path`        |  string | `classpath:python` | Base resource path for Python scripts (propagated to adapter via system property). |
+| `polyglot.python.warmup-on-startup`     | boolean |            `false` | Executes a noop expression at `ApplicationReadyEvent`.                             |
+| `polyglot.python.preload-scripts`       |    list |               `[]` | **Planned**: preload scripts list (property exists; wire-up may be incremental).   |
+| `polyglot.js.enabled`                   | boolean |            `false` | Enables JavaScript executor auto-config.                                           |
+| `polyglot.js.resources-path`            |  string |     `classpath:js` | Base resource path for JS scripts (propagated to adapter via system property).     |
+| `polyglot.js.warmup-on-startup`         | boolean |            `false` | Executes a noop expression at `ApplicationReadyEvent`.                             |
+| `polyglot.js.preload-scripts`           |    list |               `[]` | **Planned**: preload scripts list (property exists; wire-up may be incremental).   |
+| `polyglot.clients.base-packages`        |    list |               `[]` | Base packages to scan for `@PolyglotClient` interfaces (property-based scanning).  |
+| `polyglot.actuator.info.enabled`        | boolean |             `true` | Adds polyglot section to `/actuator/info`.                                         |
+| `polyglot.actuator.health.enabled`      | boolean |             `true` | Adds polyglot indicator to `/actuator/health`.                                     |
+| `polyglot.metrics.enabled`              | boolean |             `true` | Registers Micrometer meters when Micrometer is present.                            |
+
+### Example `application.yml`
+
+```yaml
+polyglot:
+  core:
+    enabled: true
+    fail-fast: true
+    log-metadata-on-startup: true
+    log-level: debug
+
+  python:
+    enabled: true
+    resources-path: classpath:python
+    warmup-on-startup: true
+    preload-scripts:
+      - forecast.py
+      - libraries.py
+      - stats.py
+
+  js:
+    enabled: false
+
+  clients:
+    base-packages:
+      - io.github.ih0rd.examples.contracts
+
+  actuator:
+    info:
+      enabled: true
+    health:
+      enabled: true
+
+  metrics:
+    enabled: true
+```
+
+---
+
+## Startup summary log
+
+When `polyglot.core.log-metadata-on-startup=true`, the starter logs a stable summary.
+
+Example output:
+
+```text
+---- Polyglot Starter ----------------------------------------
+Core        : ENABLED, failFast=true, logLevel=DEBUG
+Python      : ENABLED (available)
+  resources : classpath:python
+  warmup    : true
+  preload   : none
+  clients   : 3
+JavaScript  : DISABLED
+Executors   : python=ACTIVE, js=OFF
+Startup     : polyglot=93 ms
+--------------------------------------------------------------
+```
+
+Notes:
+- `clients` is derived from executor metadata (e.g., `instanceCacheSize` for Python binding cache).
+- `Startup : polyglot=... ms` measures time from bean construction to summary emission.
+
+---
+
+## Using executors directly
+
+Inject `PolyglotExecutors`:
 
 ```java
 import io.github.ih0rd.polyglot.spring.PolyglotExecutors;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MyService {
+public class DemoService {
+  private final PolyglotExecutors polyglot;
 
-    private final PolyglotExecutors polyglot;
+  public DemoService(PolyglotExecutors polyglot) {
+    this.polyglot = polyglot;
+  }
 
-    public MyService(PolyglotExecutors polyglot) {
-        this.polyglot = polyglot;
-    }
-
-    public void runScripts() {
-        // Safely access the executor
-        polyglot.python().ifPresent(py -> {
-            Long result = py.evaluate("1 + 1", Long.class);
-            System.out.println("Python says: 1 + 1 = " + result);
-        });
-
-        // Or require it, which throws an exception if it's not configured
-        var js = polyglot.requireJs();
-        String greeting = js.evaluate("'Hello from ' + 'JS!'", String.class);
-        System.out.println(greeting);
-    }
+  public String hello() {
+    return polyglot.python()
+        .map(py -> py.evaluate("'hello from python'", String.class))
+        .orElse("python disabled");
+  }
 }
 ```
 
-### 3.2. Binding Java Interfaces
+---
 
-The primary power of the adapter is its ability to bind guest language functions to Java interfaces.
+## `@PolyglotClient` (typed bindings as Spring beans)
 
-**1. Define a Java Interface:**
+### 1) Define a contract
 
 ```java
-public interface Greeter {
-    String hello(String name);
+import io.github.ih0rd.adapter.context.SupportedLanguage;
+import io.github.ih0rd.polyglot.spring.client.PolyglotClient;
+
+@PolyglotClient(languages = SupportedLanguage.PYTHON)
+public interface ForecastService {
+  java.util.Map<String, Object> forecast(
+      java.util.List<Double> y, int steps, int seasonPeriod);
 }
 ```
 
-**2. Create a Python Implementation:**
-
-Place the script in a location accessible to the `ResourcesProvider` (e.g., `src/main/resources/python/my_api.py`).
+### 2) Provide a guest implementation (Python)
 
 ```python
-# my_api.py
-def hello(name):
-  return f"Hello, {name}!"
+import polyglot
+
+class ForecastService:
+    def forecast(self, y, steps, season_period=4):
+        return {"forecast": [1.0, 2.0], "season_period": season_period}
+
+polyglot.export_value("ForecastService", ForecastService)
 ```
 
-**3. Bind and Use in Java:**
+### 3) Enable scanning
+
+You can enable scanning via annotation:
 
 ```java
-import io.github.ih0rd.polyglot.spring.PolyglotExecutors;
-import org.springframework.stereotype.Service;
+import io.github.ih0rd.polyglot.spring.client.EnablePolyglotClients;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@Service
-public class GreeterService {
-
-    private final Greeter pythonGreeter;
-
-    public GreeterService(PolyglotExecutors polyglot) {
-        // Bind the Python implementation to the Java interface
-        this.pythonGreeter = polyglot.requirePython().bind(Greeter.class);
-    }
-
-    public String sayHello(String name) {
-        return pythonGreeter.hello(name); // Executes the Python function
-    }
-}
+@SpringBootApplication
+@EnablePolyglotClients(basePackages = "io.github.ih0rd.examples.contracts")
+public class App {}
 ```
 
-/// ## 4. Configuration Properties
+Or via properties:
 
-All properties are prefixed with `polyglot`.
-
-| Property                         | Description                                                                                             | Default            |
-|----------------------------------|---------------------------------------------------------------------------------------------------------|--------------------|
-| `core.enabled`                   | Global on/off switch for the starter.                                                                   | `true`             |
-| `core.fail-fast`                 | If `true`, fails application startup on critical errors (e.g., script preload failure).                 | `true`             |
-| `core.log-metadata-on-startup`   | If `true`, logs a snapshot of polyglot configuration and detected runtimes on startup.                  | `true`             |
-| `core.log-level`                 | Log level used for starter debug messages.                                                              | `debug`            |
-| `python.enabled`                 | Enables the `PyExecutor` bean.                                                                          | `false`            |
-| `python.resources-path`          | Path to the root directory for Python scripts (e.g., `classpath:/python/`).                               | `classpath:python` |
-| `python.vfs-enabled`             | Enables GraalPy VFS integration in the executor configuration.                                          | `true`             |
-| `python.safe-defaults`           | If `true`, applies core “safe defaults” for Python.                                                     | `true`             |
-| `python.warmup-on-startup`       | Executes a simple expression to warm up the Python context on startup.                                  | `false`            |
-| `python.preload-scripts[]`       | A list of script files to evaluate on startup.                                                          | `[]`               |
-| `js.enabled`                     | Enables the `JsExecutor` bean.                                                                          | `false`            |
-| `js.node-support`                | Enables Node.js compatibility mode for the JS executor.                                                 | `false`            |
-| `js.resources-path`              | Path to the root directory for JavaScript scripts.                                                      | `classpath:js`     |
-| `js.warmup-on-startup`           | Executes a simple expression to warm up the JS context on startup.                                      | `false`            |
-| `js.preload-scripts[]`           | A list of script files to evaluate on startup.                                                          | `[]`               |
-| `actuator.info.enabled`          | If `true`, adds polyglot metadata to the `/actuator/info` endpoint.                                       | `true`             |
-| `actuator.health.enabled`        | If `true`, adds a polyglot health check to the `/actuator/health` endpoint.                               | `true`             |
-| `metrics.enabled`                | If `true` and Micrometer is on the classpath, registers polyglot metrics.                               | `true`             |
-
-**Example `application.properties`:**
-
-```properties
-# Enable python
-polyglot.python.enabled=true
-
-# Set the path for Python scripts
-polyglot.python.resources-path=classpath:/scripts/py/
-
-# Preload a utility script on startup
-polyglot.python.preload-scripts[0]=utils.py
+```yaml
+polyglot:
+  clients:
+    base-packages:
+      - io.github.ih0rd.examples.contracts
 ```
 
-/// ## 5. Actuator & Metrics
+After scanning, the interface becomes a Spring bean (created by `PolyglotClientFactoryBean`) and can be injected normally.
 
-### 5.1. Health Endpoint
+---
 
-The starter contributes to the `/actuator/health` endpoint. It will report `UP` if at least one executor is available and healthy, and show the status of each language.
+## Actuator
 
-```json
-{
-  "status": "UP",
-  "components": {
-    "polyglot": {
-      "status": "UP",
-      "details": {
-        "pythonEnabled": true,
-        "jsEnabled": false
-      }
-    },
-    "...": "..."
-  }
-}
-```
+### `/actuator/info`
 
-### 5.2. Info Endpoint
+Adds a `polyglot` section including configuration and runtime availability (per enabled language).
 
-If enabled, the `/actuator/info` endpoint will display metadata about each active executor, such as the GraalVM engine version.
+### `/actuator/health`
 
-```json
-"polyglot": {
-  "core": {
-    "enabled": true,
-    "failFast": true
-  },
-  "python": {
-    "enabled": true,
-    "resourcesPath": "classpath:python",
-    "vfsEnabled": true,
-    "warmupOnStartup": false
-  },
-  "js": {
-    "enabled": false
-  }
-}
-```
+Adds a health component reflecting:
+- language enabled flags
+- executor availability (runtime presence, bean presence)
+- shallow status (no guest code execution by default)
 
-### 5.3. Micrometer Metrics
+---
 
-When `polyglot.metrics.enabled=true` and Micrometer is present, the starter registers gauges that can be scraped by a monitoring system like Prometheus. This can be used to monitor the state of the polyglot runtime.
- - `polyglot.python.enabled`: 1 if python is enabled, 0 otherwise
- - `polyglot.js.enabled`: 1 if javascript is enabled, 0 otherwise
- - `polyglot.executor.source.cache.size`: The size of the source cache for each language
+## Micrometer metrics
+
+When `polyglot.metrics.enabled=true` and Micrometer is present, the starter registers gauges such as:
+
+- `polyglot.executor.source.cache.size{language="python"}`
+- `polyglot.executor.source.cache.size{language="js"}`
+
+Values are sourced from executor `metadata()` (e.g., `sourceCacheSize`).
+
+---
+
+## Troubleshooting
+
+### `polyglot.python.enabled=true` but runtime missing
+
+If Python is enabled but GraalPy runtime is not on the classpath, startup fails (when fail-fast is enabled):
+
+- add `org.graalvm.python:python-embedding`
+- add `org.graalvm.python:python-launcher`
+
+Same concept applies to JS runtime.
+
+---
+## 📜 License
+Licensed under the **Apache License 2.0**.  
+See [LICENSE](../LICENSE) for details.
