@@ -2,6 +2,38 @@
 
 All notable changes to **polyglot-adapter** (GraalVM polyglot adapter) will be documented in this file.
 
+## [0.1.0] - 2025-12-17
+
+
+### ➕ Added
+- initial Spring Boot starter for polyglot-adapter (db83b77)
+- create demo with spring boot starter (a113375)
+
+
+### ⚙️ Changed
+- move to multi-module layout with BOM (6ccb2c2)
+
+
+### ✅ Fixed
+- update dependency org.bouncycastle:bcpg-jdk18on to v1.82 (6dcd747)
+- stabilize library logic with small refactoring (67899d8)
+- update java example with using new library API (a3da9c5)
+- update dependency org.bouncycastle:bcpg-jdk18on to v1.83 (f4467e1)
+- small update and cleanup core module (a63cdfa)
+
+
+### 🧪 Internal
+- update release script with creation CHANGELOG.md (0103ee0)
+- update Readme.md (f17605f)
+- update actions/cache action to v5 (113b288)
+- update maven dependencies (51c7dab)
+- update dependency maven to v3.9.12 (7444e0f)
+- update spring boot starter documentation (945e7d2)
+- fix maven pom files (7818f48)
+- update root documentation file (100a845)
+- update release script (c85857c)
+
+
 ## [Unreleased]
 
 
