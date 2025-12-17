@@ -44,16 +44,34 @@ tasks:
       - echo "✅ Verification complete."
 
   release:
-    desc: Release (set version, tag, bump snapshot)
+    desc: Release project (version bump, changelog, tag, deploy)
     silent: true
     vars:
       VERSION: { sh: 'echo ${VERSION:-}' }
+      MODULE: { sh: 'echo ${MODULE:-}' }
     cmds:
       - |
-        echo "🚀 Releasing version {{.VERSION}}..."
+        if [ -z "{{.VERSION}}" ]; then
+          echo "❌ VERSION is required"
+          echo "Usage:"
+          echo "  task release VERSION=0.0.22"
+          echo "  task release VERSION=0.0.22 MODULE=polyglot-core"
+          exit 1
+        fi
+  
+        echo "🚀 Releasing version {{.VERSION}}"
+        
+        if [ -n "{{.MODULE}}" ]; then
+          echo "📦 Target module: {{.MODULE}}"
+        else
+          echo "📦 Target: ALL modules"
+        fi
+  
         chmod +x ./scripts/release.sh
-        ./scripts/release.sh {{.VERSION}}
-        echo "✅ Release {{.VERSION}} complete."
+        ./scripts/release.sh {{.VERSION}} {{.MODULE}}
+  
+        echo "✅ Release {{.VERSION}} completed"
+
 
   bump:
     desc: Bump project version (patch|minor|major)

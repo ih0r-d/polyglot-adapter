@@ -2,8 +2,13 @@
 set -euo pipefail
 
 VERSION=${1:-}
+MODULE=${2:-}
+
 if [ -z "$VERSION" ]; then
-  echo "❌ VERSION required: ./release.sh 1.2.3"
+  echo "❌ VERSION required"
+  echo "Usage:"
+  echo "  ./scripts/release.sh 0.0.22"
+  echo "  ./scripts/release.sh 0.0.22 polyglot-core"
   exit 1
 fi
 
@@ -17,33 +22,57 @@ if git rev-parse "v$VERSION" >/dev/null 2>&1; then
   exit 0
 fi
 
-MAVEN_OPTS="--enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
+export MAVEN_OPTS="--enable-native-access=ALL-UNNAMED \
+  --add-opens=java.base/java.lang=ALL-UNNAMED"
 
-MAVEN_OPTS="$MAVEN_OPTS" ./mvnw -q -ntp -B \
-  versions:set -DnewVersion="$VERSION" \
-  -DgenerateBackupPoms=false -DprocessAllModules=true 2>/dev/null
+echo "🔧 Setting version $VERSION for all modules"
 
-# Changelog via git-cliff
+./mvnw -q -ntp -B versions:set \
+  -DnewVersion="$VERSION" \
+  -DprocessAllModules=true \
+  -DgenerateBackupPoms=false
+
+# ------------------------------------------------------------------
+# CHANGELOG
+# ------------------------------------------------------------------
+
 if [ ! -f CHANGELOG.md ]; then
-  echo "📝 Generating initial CHANGELOG.md with git-cliff..."
+  echo "📝 Generating initial CHANGELOG.md"
   git cliff --config .git-cliff.toml --output CHANGELOG.md
 else
-  echo "📝 Updating CHANGELOG.md for $VERSION with git-cliff (prepend)..."
+  echo "📝 Updating CHANGELOG.md for $VERSION"
   git cliff --config .git-cliff.toml \
     --unreleased \
     --tag "$VERSION" \
     --prepend CHANGELOG.md
 fi
 
-# Stage POMs + changelog
-git add pom.xml CHANGELOG.md
-git add */pom.xml 2>/dev/null || true
+# ------------------------------------------------------------------
+# Commit + tag
+# ------------------------------------------------------------------
 
-git commit -m "Release $VERSION" >/dev/null 2>&1 || true
-
+git add pom.xml CHANGELOG.md */pom.xml
+git commit -m "Release $VERSION" || true
 git tag -a "v$VERSION" -m "Release $VERSION"
 
-git push origin "v$VERSION" >/dev/null 2>&1
-git push origin main >/dev/null 2>&1
+git push origin main
+git push origin "v$VERSION"
 
-echo "✅ Released $VERSION (tag v$VERSION pushed)"
+# ------------------------------------------------------------------
+# Deploy
+# ------------------------------------------------------------------
+
+echo "🚀 Deploy phase"
+
+if [ -z "$MODULE" ]; then
+  echo "➡️ Deploying ALL modules"
+  ./mvnw -B -ntp deploy -P release
+else
+  echo "➡️ Deploying module: $MODULE"
+  ./mvnw -B -ntp deploy \
+    -P release \
+    -pl "$MODULE" \
+    -am
+fi
+
+echo "✅ Release $VERSION completed"
