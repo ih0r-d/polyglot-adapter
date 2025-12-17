@@ -9,15 +9,14 @@
     <version>0.0.21-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>polyglot-adapter parent</name>
+    <name>polyglot-adapter-parent</name>
     <description>Lightweight Java SDK for executing polyglot code via GraalVM</description>
     <url>https://github.com/ih0r-d/polyglot-adapter</url>
 
     <modules>
         <module>polyglot-bom</module>
         <module>polyglot-core</module>
-        <!-- потім -->
-        <!-- <module>polyglot-spring-starter</module> -->
+        <module>polyglot-spring-boot-starter</module>
     </modules>
 
     <properties>

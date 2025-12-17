@@ -28,7 +28,7 @@
             <!-- spring starter -->
             <dependency>
                 <groupId>io.github.ih0r-d</groupId>
-                <artifactId>polyglot-spring-starter</artifactId>
+                <artifactId>polyglot-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
                 <optional>true</optional>
             </dependency>
