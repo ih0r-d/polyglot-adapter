@@ -19,8 +19,8 @@
     <url>https://github.com/ih0r-d/polyglot-adapter</url>
 
     <properties>
-        <spring-boot.version>4.0.0</spring-boot.version>
-        <polyglot-bom.version>0.0.21-SNAPSHOT</polyglot-bom.version>
+        <spring-boot.version>4.0.1</spring-boot.version>
+        <polyglot-bom.version>0.1.0</polyglot-bom.version>
     </properties>
 
     <dependencyManagement>
