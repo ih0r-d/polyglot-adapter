@@ -50,15 +50,16 @@ public record PolyglotProperties(
   }
 
   /**
-   * Python settings.
+   * Python executor settings.
    *
    * <p>Prefix: {@code polyglot.python.*}
    *
    * @param enabled enables Python executor bean
-   * @param resourcesPath base location of Python scripts (classpath: or filesystem)
+   * @param resourcesPath base script location expressed as a Spring Resource location
+   *                      (e.g. {@code classpath:/python/}, {@code file:./python/})
    * @param safeDefaults applies safe default options for GraalPy
-   * @param warmupOnStartup performs lightweight warmup on startup
-   * @param preloadScripts [reserved for future] python scripts/modules to preload during warmup
+   * @param warmupOnStartup performs lightweight warmup during application startup
+   * @param preloadScripts optional list of script/module names to preload during warmup
    */
   public record PythonProperties(
       boolean enabled,
@@ -77,14 +78,15 @@ public record PolyglotProperties(
   }
 
   /**
-   * JavaScript settings.
+   * JavaScript executor settings.
    *
    * <p>Prefix: {@code polyglot.js.*}
    *
    * @param enabled enables JavaScript executor bean
-   * @param resourcesPath base location of JS scripts (classpath: or filesystem)
-   * @param warmupOnStartup performs lightweight warmup on startup
-   * @param preloadScripts js scripts/modules to preload during warmup
+   * @param resourcesPath base script location expressed as a Spring Resource location
+   *                      (e.g. {@code classpath:/js/}, {@code file:./js/})
+   * @param warmupOnStartup performs lightweight warmup during application startup
+   * @param preloadScripts optional list of script/module names to preload during warmup
    */
   public record JsProperties(
       boolean enabled, String resourcesPath, boolean warmupOnStartup, List<String> preloadScripts) {
