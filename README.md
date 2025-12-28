@@ -3,7 +3,11 @@
 ![Build](https://img.shields.io/badge/build-maven-blue?logo=apache-maven)
 ![Java](https://img.shields.io/badge/JDK-25%2B-007396?logo=openjdk)
 ![GraalVM](https://img.shields.io/badge/GraalVM-25.x-FF6F00?logo=oracle)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ih0r-d_polyglot-adapter&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ih0r-d_polyglot-adapter)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
+
+[//]: # (![Coverage]&#40;https://sonarcloud.io/api/project_badges/measure?project=ih0r-d_polyglot-adapter&metric=coverage&#41;)
+
 
 A modular toolkit for running **Python** and **JavaScript** inside JVM applications via **GraalVM Polyglot**.
 
