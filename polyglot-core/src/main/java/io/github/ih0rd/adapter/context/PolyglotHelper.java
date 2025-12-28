@@ -9,23 +9,36 @@ import org.graalvm.python.embedding.VirtualFileSystem;
 
 /// # PolyglotHelper
 ///
-/// Lightweight helper for creating GraalVM {@link Context} instances with optional builder
-// customization.
-
+/// Lightweight helper for creating and initializing GraalVM {@link Context} instances.
+///
+/// This class encapsulates language-specific context configuration and ensures
+/// consistent initialization across executors.
 ///
 /// Responsibilities:
-/// - Selects the proper builder for a given {@link SupportedLanguage}
-/// - Applies a user-provided {@link Consumer} to the {@link Context.Builder}
+/// - Selects the appropriate {@link Context.Builder} for a given {@link SupportedLanguage}
+/// - Applies optional user-provided builder customization
 /// - Initializes the created context for the selected language
+///
+/// Design notes:
+/// - This helper is intentionally minimal and not extensible
+/// - It does not handle script loading or execution concerns
+/// - Contexts are created with full access enabled by default
+///
+/// NOTE:
+/// Contexts are created with {@code allowAllAccess(true)} enabled.
+/// This is a deliberate choice to favor simplicity and interoperability.
+/// Access restrictions may be introduced in future releases.
+///
 public final class PolyglotHelper {
 
   private PolyglotHelper() {}
 
   /// ### newContext
   ///
-  /// Creates a new {@link Context} for the given language and applies the provided builder
-  /// customizer (if not
-  /// {@code null}).
+  /// Creates and initializes a new {@link Context} for the given language.
+  ///
+  /// An optional {@link Consumer} may be provided to customize the
+  /// {@link Context.Builder} before the context is built.
   ///
   /// ```java
   /// Context ctx = PolyglotHelper.newContext(
@@ -35,14 +48,15 @@ public final class PolyglotHelper {
   /// ```
   ///
   /// @param language   guest language (e.g. {@code PYTHON}, {@code JS})
-  /// @param customizer optional builder customizer, may be {@code null}
-  /// @return configured {@link Context}
+  /// @param customizer optional context builder customizer, may be {@code null}
+  /// @return initialized {@link Context}
   public static Context newContext(
       SupportedLanguage language, Consumer<Context.Builder> customizer) {
 
     Objects.requireNonNull(language, "language must not be null");
 
     Context.Builder builder;
+
     switch (language) {
       case PYTHON -> {
         VirtualFileSystem vfs =
@@ -55,6 +69,7 @@ public final class PolyglotHelper {
                 .option("engine.WarnInterpreterOnly", "false")
                 .option("python.WarnExperimentalFeatures", "false");
       }
+
       case JS -> {
         builder =
             Context.newBuilder(language.id())
@@ -62,6 +77,7 @@ public final class PolyglotHelper {
                 .allowExperimentalOptions(true)
                 .option("engine.WarnInterpreterOnly", "false");
       }
+
       default -> throw new IllegalStateException("Unsupported language: " + language);
     }
 
@@ -76,10 +92,11 @@ public final class PolyglotHelper {
 
   /// ### newContext
   ///
-  /// Creates a new {@link Context} with default configuration for the given language.
+  /// Creates and initializes a new {@link Context} with default configuration
+  /// for the given language.
   ///
   /// @param language guest language
-  /// @return configured {@link Context}
+  /// @return initialized {@link Context}
   public static Context newContext(SupportedLanguage language) {
     return newContext(language, null);
   }

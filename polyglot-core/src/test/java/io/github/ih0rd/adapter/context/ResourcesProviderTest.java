@@ -8,6 +8,7 @@ import org.junit.jupiter.api.*;
 
 import io.github.ih0rd.adapter.utils.Constants;
 
+@Deprecated(forRemoval = true, since = "0.1.1")
 class ResourcesProviderTest {
 
   private static final String PY_PROP = "py.polyglot-resources.path";

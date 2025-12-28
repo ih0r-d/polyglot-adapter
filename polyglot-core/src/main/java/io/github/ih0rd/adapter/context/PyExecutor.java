@@ -3,7 +3,6 @@ package io.github.ih0rd.adapter.context;
 import static io.github.ih0rd.adapter.utils.StringCaseConverter.camelToSnake;
 
 import java.lang.ref.WeakReference;
-import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,35 +14,33 @@ import org.graalvm.polyglot.Value;
 
 import io.github.ih0rd.adapter.exceptions.BindingException;
 import io.github.ih0rd.adapter.exceptions.InvocationException;
+import io.github.ih0rd.adapter.script.ScriptSource;
 
 /// # PyExecutor
 ///
-/// Python executor for GraalPy (GraalVM 25).
+/// Python executor for GraalPy.
 ///
-/// Convention:
-/// - Java interface: {@code MyService}
-/// - Python file: {@code my_service.py}
-/// - Python class: {@code class MyService: ...}
+/// Responsibilities:
+/// - Load Python modules via {@link ScriptSource}
+/// - Resolve Python classes matching Java interfaces
+/// - Instantiate and cache Python objects per interface
+/// - Invoke Python methods via polyglot interop
 ///
-/// The executor:
-/// - loads the matching Python module from classpath or filesystem
-/// - locates the Python class via polyglot or language bindings
-/// - instantiates the class and caches the instance per interface type
 public final class PyExecutor extends AbstractPolyglotExecutor {
 
   /// ### instanceCache
-  /// Per-executor cache of Python instances keyed by Java interface type.
+  /// Cache of Python instances keyed by Java interface type.
   ///
-  /// Uses {@link WeakReference} to avoid keeping guest objects alive
-  /// longer than the underlying context.
+  /// Uses {@link WeakReference} to avoid retaining guest objects
+  /// beyond the lifetime of the underlying context.
   private final Map<Class<?>, WeakReference<Value>> instanceCache = new ConcurrentHashMap<>();
 
   /// ### PyExecutor
   ///
   /// @param context       GraalPy {@link Context}
-  /// @param resourcesPath base path for python scripts
-  public PyExecutor(Context context, Path resourcesPath) {
-    super(context, resourcesPath);
+  /// @param scriptSource script source abstraction
+  public PyExecutor(Context context, ScriptSource scriptSource) {
+    super(context, scriptSource);
   }
 
   @Override
@@ -65,21 +62,13 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
 
   /// ### validateBinding
   ///
-  /// For Python executor, validation ensures that:
-  /// - the corresponding Python module can be loaded
-  /// - the Python class with the same name as the interface exists
-  /// - the class is callable and can be instantiated
-  ///
-  /// Any failure results in an exception.
+  /// Validates that the Python module and class corresponding
+  /// to the given Java interface can be resolved and instantiated.
   @Override
   public <T> void validateBinding(Class<T> iface) {
     if (iface == null) {
       throw new IllegalArgumentException("Interface type must not be null");
     }
-    // This will:
-    // - load & eval the Python module
-    // - resolve the Python class
-    // - instantiate it (and cache the instance)
     resolveInstance(iface);
   }
 
@@ -94,62 +83,44 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
     return info;
   }
 
-  /// ### createDefault
-  ///
-  /// Creates a default Python executor with a standard GraalPy context.
-  ///
-  /// @return configured {@link PyExecutor} instance
-  public static PyExecutor createDefault() {
-    return createDefault(SupportedLanguage.PYTHON, PyExecutor::new);
-  }
-
   /// ### create
   ///
   /// Creates a Python executor with a customized {@link Context.Builder}.
   ///
-  /// ```java
-  /// PyExecutor exec = PyExecutor.create(builder ->
-  ///     builder.option("engine.WarnInterpreterOnly", "false")
-  /// );
-  /// ```
+  /// NOTE:
+  /// ScriptSource must be provided by the caller.
   ///
-  /// @param customizer builder customizer
-  /// @return configured {@link PyExecutor} instance
-  @SuppressWarnings("resource") // context is closed by executor.close()
-  public static PyExecutor create(Consumer<Context.Builder> customizer) {
-    Path resourcesPath = ResourcesProvider.get(SupportedLanguage.PYTHON);
+  /// @param scriptSource script source implementation
+  /// @param customizer   context builder customizer
+  /// @return configured {@link PyExecutor}
+  // context is closed by executor.close()
+  public static PyExecutor create(ScriptSource scriptSource, Consumer<Context.Builder> customizer) {
+
     Context context = PolyglotHelper.newContext(SupportedLanguage.PYTHON, customizer);
-    return new PyExecutor(context, resourcesPath);
+    return new PyExecutor(context, scriptSource);
   }
 
   /// ### createWithContext
   ///
-  /// Creates a Python executor that uses a caller-provided {@link Context}.
+  /// Creates a Python executor using a caller-provided {@link Context}.
+  ///
   /// The caller is responsible for managing the context lifecycle.
-  public static PyExecutor createWithContext(Context context) {
-    Path resourcesPath = ResourcesProvider.get(SupportedLanguage.PYTHON);
-    return new PyExecutor(context, resourcesPath);
+  public static PyExecutor createWithContext(Context context, ScriptSource scriptSource) {
+
+    return new PyExecutor(context, scriptSource);
   }
 
   /// ### resolveInstance
   ///
-  /// Resolves or creates a Python instance for a given Java interface type.
-  ///
-  /// Steps:
-  /// 1. Lookup cached instance in {@link #instanceCache}
-  /// 2. If missing:
-  ///    - load and eval script for the interface (e.g. {@code my_service.py})
-  ///    - locate the Python class (via polyglot or language bindings)
-  ///    - call the class to create an instance
-  /// 3. Cache and return the instance.
+  /// Resolves or creates a Python instance for the given Java interface.
   private <T> Value resolveInstance(Class<T> iface) {
     WeakReference<Value> ref = instanceCache.get(iface);
-    Value cached = ref != null ? ref.get() : null;
+    Value cached = (ref != null ? ref.get() : null);
     if (cached != null && !cached.isNull()) {
       return cached;
     }
 
-    Source source = getFileSource(iface);
+    Source source = resolveSource(iface);
     context.eval(source);
 
     Value pyClass = resolveClass(iface);
@@ -164,30 +135,22 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
       return instance;
     } catch (Exception e) {
       throw new InvocationException(
-          "Failed to instantiate Python class '%s': %s"
-              .formatted(iface.getSimpleName(), e.getMessage()),
-          e);
+          "Failed to instantiate Python class '%s'".formatted(iface.getSimpleName()), e);
     }
   }
 
   /// ### resolveClass
   ///
   /// Locates the Python class corresponding to the given Java interface.
-  ///
-  /// Resolution order:
-  /// 1. polyglot bindings (for code using {@code polyglot.export_value})
-  /// 2. language bindings (for classes defined directly in the module)
   private <T> Value resolveClass(Class<T> iface) {
     String className = iface.getSimpleName();
 
-    // 1) polyglot bindings (e.g. via polyglot.export_value("MyService", MyService))
     Value polyglotBindings = context.getPolyglotBindings();
     Value exported = polyglotBindings.getMember(className);
     if (exported != null) {
       return exported;
     }
 
-    // 2) Python language bindings (top-level class in the evaluated module)
     Value pyBindings = context.getBindings(languageId());
     Value fromBindings = pyBindings.getMember(className);
     if (fromBindings != null) {
@@ -201,11 +164,6 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
   /// ### invokeMember
   ///
   /// Invokes a method on a Python instance.
-  ///
-  /// @param target     Python object
-  /// @param methodName method name
-  /// @param args       call arguments
-  /// @return result as {@link Value}
   private Value invokeMember(Value target, String methodName, Object... args) {
     if (target == null || target.isNull()) {
       throw new BindingException(
@@ -221,20 +179,15 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
     try {
       return member.execute(args);
     } catch (Exception e) {
-      throw new InvocationException(
-          "Error executing Python method '%s': %s".formatted(methodName, e.getMessage()), e);
+      throw new InvocationException("Error executing Python method '%s'".formatted(methodName), e);
     }
   }
 
-  /// ### getFileSource
+  /// ### resolveSource
   ///
-  /// Resolves the {@link Source} for the Python module associated with the given interface.
-  ///
-  /// Example:
-  /// - interface: {@code ForecastService}
-  /// - module name: {@code forecast_service}
-  /// - file: {@code forecast_service.py}
-  private <T> Source getFileSource(Class<T> iface) {
+  /// Resolves and caches the {@link Source} for the Python module
+  /// associated with the given Java interface.
+  private <T> Source resolveSource(Class<T> iface) {
     return sourceCache.computeIfAbsent(
         iface,
         cls -> {
@@ -246,14 +199,14 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
 
   /// ### clearInstanceCache
   ///
-  /// Clears the cached Python instances.
+  /// Clears cached Python instances.
   public void clearInstanceCache() {
     instanceCache.clear();
   }
 
   /// ### clearAllCaches
   ///
-  /// Clears all caches maintained by this executor (instances + sources).
+  /// Clears all executor caches.
   @Override
   public void clearAllCaches() {
     clearInstanceCache();
