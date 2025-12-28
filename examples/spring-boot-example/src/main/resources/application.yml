@@ -11,13 +11,11 @@ management:
       show-details: always
 
 polyglot:
-
   core:
     enabled: true
     fail-fast: true
     log-metadata-on-startup: true
     log-level: debug
-
   python:
     enabled: true
     resources-path: classpath:python
@@ -26,12 +24,11 @@ polyglot:
 
   js:
     enabled: false
-    
+    resources-path: classpath:js
   actuator:
     info:
       enabled: true
     health:
       enabled: true
-
   metrics:
     enabled: true
