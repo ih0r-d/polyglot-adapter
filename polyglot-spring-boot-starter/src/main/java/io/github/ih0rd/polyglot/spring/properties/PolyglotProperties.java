@@ -44,8 +44,14 @@ public record PolyglotProperties(
   public record CoreProperties(
       boolean enabled, boolean failFast, boolean logMetadataOnStartup, String logLevel) {
 
+    public CoreProperties {
+      if (logLevel == null || logLevel.isBlank()) {
+        logLevel = "debug";
+      }
+    }
+
     public static CoreProperties defaults() {
-      return new CoreProperties(true, true, true, "debug");
+      return new CoreProperties(true, true, true, "DEBUG");
     }
   }
 
