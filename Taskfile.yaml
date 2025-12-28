@@ -19,12 +19,18 @@ tasks:
       - echo "✅ Clean complete."
 
   build:
-    desc: Build project
     silent: true
+    vars:
+      MODULE: '{{.MODULE | default ""}}'
+      SKIP_TESTS: '{{.SKIP_TESTS | default "false"}}'
     cmds:
-      - echo "🔧 Building project ..."
-      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean install -q 2>/dev/null
-      - echo "📦 Build complete — check ./target"
+      - echo "🔧 Building {{if .MODULE}}{{.MODULE}}{{else}}project{{end}} ..."
+      - |
+        export MODULE="{{.MODULE}}"
+        export SKIP_TESTS="{{.SKIP_TESTS}}"
+        chmod +x scripts/build.sh
+        ./scripts/build.sh
+      - echo "📦 Build complete"
 
   test:
     desc: Run tests
