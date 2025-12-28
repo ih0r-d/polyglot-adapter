@@ -18,30 +18,6 @@
     <description>Spring Boot starter for polyglot-adapter</description>
     <url>https://github.com/ih0r-d/polyglot-adapter</url>
 
-    <properties>
-        <spring-boot.version>4.0.1</spring-boot.version>
-        <polyglot-bom.version>0.1.0</polyglot-bom.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.github.ih0r-d</groupId>
-                <artifactId>polyglot-bom</artifactId>
-                <version>${polyglot-bom.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- core library -->
         <dependency>

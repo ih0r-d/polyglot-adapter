@@ -38,7 +38,7 @@ public class PolyglotMetricsBinder implements MeterBinder {
   private void bindPython(MeterRegistry registry, PyExecutor executor) {
     Tags tags = baseTags(SupportedLanguage.PYTHON);
 
-    Gauge.builder("polyglot.executor.enabled", () -> 1)
+    Gauge.builder("polyglot.executor.enabled", executor, _ -> 1)
         .description("Whether the Python executor is enabled")
         .tags(tags)
         .register(registry);
@@ -100,7 +100,7 @@ public class PolyglotMetricsBinder implements MeterBinder {
   }
 
   private Tags baseTags(SupportedLanguage language) {
-    return Tags.of("language", language.id(), "executor", language.name());
+    return Tags.of("language", language.id());
   }
 
   private double number(Map<String, Object> metadata, String key) {
