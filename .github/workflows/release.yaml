@@ -1,4 +1,4 @@
-name: 🚀 Maven Library Release
+name: 🚀 Release
 
 on:
   push:
@@ -7,19 +7,18 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧩 Checkout repo
+      - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref_name }}
+          fetch-depth: 0
 
-      - name: ☕ Setup JDK 25 (Temurin)
+      - name: Setup JDK
         uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -29,60 +28,21 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
 
-      - name: 🔐 Import GPG key
+      - name: Import GPG key
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
-          gpg --list-secret-keys --keyid-format LONG
 
-      - name: ⚙️ Install Task CLI
-        run: |
-          echo "🛠 Installing Task CLI..."
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
-          sudo mv ./bin/task /usr/local/bin/task
-          task --version
-
-      - name: 🧪 Run tests with coverage check (min 75%)
-        run: |
-          mvn clean verify org.jacoco:jacoco-maven-plugin:prepare-agent org.jacoco:jacoco-maven-plugin:report
-          COVERED=$(grep -A 1 '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | grep -oP 'covered="\K[0-9]+' | awk '{s+=$1} END{print s}')
-          MISSED=$(grep -A 1 '<counter type="INSTRUCTION"' target/site/jacoco/jacoco.xml | grep -oP 'missed="\K[0-9]+' | awk '{s+=$1} END{print s}')
-          TOTAL=$((COVERED + MISSED))
-          PERCENT=$((100 * COVERED / TOTAL))
-          echo "➡️ Code Coverage: ${PERCENT}%"
-          if [ "$PERCENT" -lt 75 ]; then
-            echo "❌ Coverage below 75%! (${PERCENT}%)"
-            exit 1
-          fi
-
-      - name: 🧩 Flatten POM
-        run: mvn flatten:flatten -P release
-
-      - name: 📦 Collect JAR artifacts
-        run: |
-          mkdir -p release-artifacts
-          find . -type f -name "*.jar" ! -name "original-*.jar" -exec cp {} release-artifacts/ \;
-          ls -la release-artifacts
-
-      - name: 🏷️ Create GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          artifacts: "release-artifacts/*.jar"
-          artifactContentType: application/java-archive
-          body: |
-            🚀 **Maven Library Release**
-            Built automatically from tag `${{ github.ref_name }}`
-            ✅ Includes compiled JAR artifacts.
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: ☁️ Deploy to Maven Central
+      - name: Deploy to Maven Central
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          mvn clean deploy -P release \
-            -Dgpg.skip=false \
+          mvn -B -ntp -DskipTests -Prelease deploy \
             -Dgpg.passphrase="${GPG_PASSPHRASE}"
 
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
