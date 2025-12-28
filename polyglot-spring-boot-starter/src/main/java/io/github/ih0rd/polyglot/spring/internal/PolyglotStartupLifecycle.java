@@ -1,12 +1,14 @@
 package io.github.ih0rd.polyglot.spring.internal;
 
-import io.github.ih0rd.adapter.context.JsExecutor;
-import io.github.ih0rd.adapter.context.PyExecutor;
-import io.github.ih0rd.polyglot.spring.properties.PolyglotProperties;
 import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
+
+import io.github.ih0rd.adapter.context.JsExecutor;
+import io.github.ih0rd.adapter.context.PyExecutor;
+import io.github.ih0rd.polyglot.spring.properties.PolyglotProperties;
 
 /// # PolyglotStartupLifecycle
 ///
@@ -28,132 +30,118 @@ import org.springframework.context.SmartLifecycle;
 ///
 public final class PolyglotStartupLifecycle implements SmartLifecycle {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(PolyglotStartupLifecycle.class);
+  private static final Logger log = LoggerFactory.getLogger(PolyglotStartupLifecycle.class);
 
-    private final PolyglotProperties properties;
-    private final PyExecutor pyExecutor;
-    private final JsExecutor jsExecutor;
+  private final PolyglotProperties properties;
+  private final PyExecutor pyExecutor;
+  private final JsExecutor jsExecutor;
 
-    private volatile boolean running;
+  private volatile boolean running;
 
-    public PolyglotStartupLifecycle(
-            PolyglotProperties properties,
-            PyExecutor pyExecutor,
-            JsExecutor jsExecutor) {
+  public PolyglotStartupLifecycle(
+      PolyglotProperties properties, PyExecutor pyExecutor, JsExecutor jsExecutor) {
 
-        this.properties = properties;
-        this.pyExecutor = pyExecutor;
-        this.jsExecutor = jsExecutor;
+    this.properties = properties;
+    this.pyExecutor = pyExecutor;
+    this.jsExecutor = jsExecutor;
+  }
+
+  @Override
+  public void start() {
+    if (!properties.core().enabled()) {
+      return;
     }
 
-    @Override
-    public void start() {
-        if (!properties.core().enabled()) {
-            return;
-        }
+    long startedAt = System.nanoTime();
 
-        long startedAt = System.nanoTime();
+    try {
+      warmupPython();
+      warmupJs();
 
-        try {
-            warmupPython();
-            warmupJs();
+      logStartupSummary(startedAt);
+      running = true;
 
-            logStartupSummary(startedAt);
-            running = true;
-
-        } catch (Exception ex) {
-            if (properties.core().failFast()) {
-                throw new IllegalStateException(
-                        "Polyglot startup initialization failed", ex);
-            }
-            log.warn(
-                    "Polyglot startup initialization failed (failFast=false)",
-                    ex);
-        }
+    } catch (Exception ex) {
+      if (properties.core().failFast()) {
+        throw new IllegalStateException("Polyglot startup initialization failed", ex);
+      }
+      log.warn("Polyglot startup initialization failed (failFast=false)", ex);
     }
-    
-    private void warmupPython() {
-        if (pyExecutor == null
-                || !properties.python().enabled()
-                || !properties.python().warmupOnStartup()) {
-            return;
-        }
+  }
 
-        log.debug("[Polyglot][PYTHON] Warmup started");
-        pyExecutor.evaluate(PolyglotWarmupConstants.NOOP_EXPRESSION);
+  private void warmupPython() {
+    if (pyExecutor == null
+        || !properties.python().enabled()
+        || !properties.python().warmupOnStartup()) {
+      return;
     }
 
-    private void warmupJs() {
-        if (jsExecutor == null
-                || !properties.js().enabled()
-                || !properties.js().warmupOnStartup()) {
-            return;
-        }
+    log.debug("[Polyglot][PYTHON] Warmup started");
+    pyExecutor.evaluate(PolyglotWarmupConstants.NOOP_EXPRESSION);
+  }
 
-        log.debug("[Polyglot][JS] Warmup started");
-        jsExecutor.evaluate(PolyglotWarmupConstants.NOOP_EXPRESSION);
+  private void warmupJs() {
+    if (jsExecutor == null || !properties.js().enabled() || !properties.js().warmupOnStartup()) {
+      return;
     }
 
-    private void logStartupSummary(long startedAtNanos) {
-        long startupMs =
-                TimeUnit.NANOSECONDS.toMillis(
-                        System.nanoTime() - startedAtNanos);
+    log.debug("[Polyglot][JS] Warmup started");
+    jsExecutor.evaluate(PolyglotWarmupConstants.NOOP_EXPRESSION);
+  }
 
-        log.info("---- Polyglot Starter ----------------------------------------");
+  private void logStartupSummary(long startedAtNanos) {
+    long startupMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAtNanos);
 
-        log.info(
-                "Core        : {}, failFast={}, logLevel={}",
-                properties.core().enabled() ? "ENABLED" : "DISABLED",
-                properties.core().failFast(),
-                properties.core().logLevel().toUpperCase());
+    log.info("---- Polyglot Starter ----------------------------------------");
 
-        if (properties.python().enabled()) {
-            log.info(
-                    "Python      : ENABLED ({})",
-                    pyExecutor != null ? "available" : "missing runtime");
-            log.info("  warmup    : {}", properties.python().warmupOnStartup());
-            log.info(
-                    "  preload   : {}",
-                    properties.python().preloadScripts().isEmpty()
-                            ? "none"
-                            : properties.python().preloadScripts());
-        } else {
-            log.info("Python      : DISABLED");
-        }
+    log.info(
+        "Core        : {}, failFast={}, logLevel={}",
+        properties.core().enabled() ? "ENABLED" : "DISABLED",
+        properties.core().failFast(),
+        properties.core().logLevel().toUpperCase());
 
-        if (properties.js().enabled()) {
-            log.info(
-                    "JavaScript  : ENABLED ({})",
-                    jsExecutor != null ? "available" : "missing runtime");
-            log.info("  warmup    : {}", properties.js().warmupOnStartup());
-        } else {
-            log.info("JavaScript  : DISABLED");
-        }
-
-        log.info(
-                "Executors   : python={}, js={}",
-                pyExecutor != null ? "ACTIVE" : "OFF",
-                jsExecutor != null ? "ACTIVE" : "OFF");
-
-        log.info("Startup     : polyglot={} ms", startupMs);
-
-        log.info("--------------------------------------------------------------");
+    if (properties.python().enabled()) {
+      log.info("Python      : ENABLED ({})", pyExecutor != null ? "available" : "missing runtime");
+      log.info("  warmup    : {}", properties.python().warmupOnStartup());
+      log.info(
+          "  preload   : {}",
+          properties.python().preloadScripts().isEmpty()
+              ? "none"
+              : properties.python().preloadScripts());
+    } else {
+      log.info("Python      : DISABLED");
     }
 
-    @Override
-    public boolean isRunning() {
-        return running;
+    if (properties.js().enabled()) {
+      log.info("JavaScript  : ENABLED ({})", jsExecutor != null ? "available" : "missing runtime");
+      log.info("  warmup    : {}", properties.js().warmupOnStartup());
+    } else {
+      log.info("JavaScript  : DISABLED");
     }
 
-    /// Run as late as possible
-    @Override
-    public int getPhase() {
-        return Integer.MAX_VALUE;
-    }
+    log.info(
+        "Executors   : python={}, js={}",
+        pyExecutor != null ? "ACTIVE" : "OFF",
+        jsExecutor != null ? "ACTIVE" : "OFF");
 
-    @Override
-    public void stop() {
-        // no-op
-    }
+    log.info("Startup     : polyglot={} ms", startupMs);
+
+    log.info("--------------------------------------------------------------");
+  }
+
+  @Override
+  public boolean isRunning() {
+    return running;
+  }
+
+  /// Run as late as possible
+  @Override
+  public int getPhase() {
+    return Integer.MAX_VALUE;
+  }
+
+  @Override
+  public void stop() {
+    // no-op
+  }
 }

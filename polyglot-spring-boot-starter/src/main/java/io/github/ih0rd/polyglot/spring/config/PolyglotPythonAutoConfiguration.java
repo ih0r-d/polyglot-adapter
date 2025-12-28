@@ -31,22 +31,16 @@ public class PolyglotPythonAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(name = "pyScriptSource")
-  public ScriptSource pyScriptSource(
-          ResourceLoader resourceLoader,
-          PolyglotProperties properties) {
+  public ScriptSource pyScriptSource(ResourceLoader resourceLoader, PolyglotProperties properties) {
 
     return new SpringResourceScriptSource(
-            resourceLoader,
-            SupportedLanguage.PYTHON,
-            properties.python().resourcesPath()
-    );
+        resourceLoader, SupportedLanguage.PYTHON, properties.python().resourcesPath());
   }
 
   @Bean
   @ConditionalOnMissingBean
   public PyExecutor pyExecutor(
-          SpringPolyglotContextFactory contextFactory,
-          ScriptSource pyScriptSource) {
+      SpringPolyglotContextFactory contextFactory, ScriptSource pyScriptSource) {
 
     Context context = contextFactory.create(SupportedLanguage.PYTHON);
     return new PyExecutor(context, pyScriptSource);
