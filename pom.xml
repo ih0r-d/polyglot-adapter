@@ -27,7 +27,7 @@
         <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
         <spotless-plugin.version>3.1.0</spotless-plugin.version>
         <jacoco-plugin.version>0.8.14</jacoco-plugin.version>
-        <enforcer-plugin.version>3.5.0</enforcer-plugin.version>
+        <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
         <!--        Temporary 60% coverage-->
         <jacoco.coverage.instruction.minimum>0.60</jacoco.coverage.instruction.minimum>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
