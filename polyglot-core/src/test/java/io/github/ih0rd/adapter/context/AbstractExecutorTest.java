@@ -72,9 +72,7 @@ class AbstractExecutorTest {
     Value nullValue = mock(Value.class);
     when(nullValue.isNull()).thenReturn(true);
 
-    doReturn(nullValue)
-            .when(exec)
-            .evaluate(eq("hello"), any(), any(Object[].class));
+    doReturn(nullValue).when(exec).evaluate(eq("hello"), any(), any(Object[].class));
 
     interface Api {
       Object hello();
@@ -119,8 +117,7 @@ class AbstractExecutorTest {
     TestExecutor exec = new TestExecutor(ctx);
 
     // real evaluate(String) runs, but Context.eval explodes
-    when(ctx.eval(any(Source.class)))
-            .thenThrow(new RuntimeException("boom"));
+    when(ctx.eval(any(Source.class))).thenThrow(new RuntimeException("boom"));
 
     assertThrows(InvocationException.class, () -> exec.evaluate("x=1"));
   }
