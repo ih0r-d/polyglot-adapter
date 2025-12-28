@@ -31,22 +31,16 @@ public class PolyglotJsAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(name = "jsScriptSource")
-  public ScriptSource jsScriptSource(
-          ResourceLoader resourceLoader,
-          PolyglotProperties properties) {
+  public ScriptSource jsScriptSource(ResourceLoader resourceLoader, PolyglotProperties properties) {
 
     return new SpringResourceScriptSource(
-            resourceLoader,
-            SupportedLanguage.JS,
-            properties.js().resourcesPath()
-    );
+        resourceLoader, SupportedLanguage.JS, properties.js().resourcesPath());
   }
 
   @Bean
   @ConditionalOnMissingBean
   public JsExecutor jsExecutor(
-          SpringPolyglotContextFactory contextFactory,
-          ScriptSource jsScriptSource) {
+      SpringPolyglotContextFactory contextFactory, ScriptSource jsScriptSource) {
 
     Context context = contextFactory.create(SupportedLanguage.JS);
     return new JsExecutor(context, jsScriptSource);
