@@ -2,6 +2,34 @@
 
 All notable changes to **polyglot-adapter** (GraalVM polyglot adapter) will be documented in this file.
 
+## [0.1.1] - 2025-12-28
+
+
+### ➕ Added
+- update demo to explicit ScriptSource wiring (60dba20)
+- add Spring ScriptSource, warmup and metrics support (869ae43)
+
+
+### ⚙️ Changed
+- decouple script loading via ScriptSource SPI (e2e0ceb)
+- stabilize autoconfig, startup lifecycle, and tests (bddb1dc)
+- update application.yml for spring boot example (9498619)
+
+
+### ✅ Fixed
+- update maven dependencies (c56f809)
+
+
+### 🧪 Internal
+- synchronize version bump across all Maven modules (93cab37)
+- align build script with Maven skipTests semantics (2222bc5)
+- rename java-example to java-maven-example (9d60815)
+- fix AbstractPolyglotExecutor tests after ScriptSource SPI (10d78e4)
+- apply spotless formatting (0b480b5)
+- normalize workflows (ci, security, release) (40e6be1)
+- fix ref condition in release script (a2b1f0f)
+
+
 ## [0.1.0] - 2025-12-17
 
 
