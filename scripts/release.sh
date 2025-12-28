@@ -17,7 +17,7 @@ if ! git diff-index --quiet HEAD --; then
   exit 1
 fi
 
-if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+if git show-ref --tags --verify --quiet "refs/tags/v$VERSION"; then
   echo "⚠️ Tag v$VERSION already exists."
   exit 0
 fi
