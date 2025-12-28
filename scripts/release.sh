@@ -30,6 +30,7 @@ echo "🔧 Setting version $VERSION for all modules"
 ./mvnw -q -ntp -B versions:set \
   -DnewVersion="$VERSION" \
   -DprocessAllModules=true \
+  -DprocessParent=true \
   -DgenerateBackupPoms=false
 
 # ------------------------------------------------------------------
@@ -57,22 +58,5 @@ git tag -a "v$VERSION" -m "Release $VERSION"
 
 git push origin main
 git push origin "v$VERSION"
-
-# ------------------------------------------------------------------
-# Deploy
-# ------------------------------------------------------------------
-
-echo "🚀 Deploy phase"
-
-if [ -z "$MODULE" ]; then
-  echo "➡️ Deploying ALL modules"
-  ./mvnw -B -ntp deploy -P release
-else
-  echo "➡️ Deploying module: $MODULE"
-  ./mvnw -B -ntp deploy \
-    -P release \
-    -pl "$MODULE" \
-    -am
-fi
 
 echo "✅ Release $VERSION completed"
