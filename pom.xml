@@ -29,6 +29,12 @@
         <jacoco-plugin.version>0.8.14</jacoco-plugin.version>
         <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <!--        Sonar config    -->
+        <sonar-plugin.version>3.11.0.3922</sonar-plugin.version>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.organization>ih0r-d</sonar.organization>
+        <sonar.projectKey>ih0r-d_polyglot-adapter</sonar.projectKey>
+
         <!--        Temporary 60% coverage-->
         <jacoco.coverage.instruction.minimum>0.60</jacoco.coverage.instruction.minimum>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
@@ -236,7 +242,11 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar-plugin.version}</version>
+            </plugin>
         </plugins>
     </build>
 
