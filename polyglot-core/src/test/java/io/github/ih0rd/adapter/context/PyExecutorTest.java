@@ -28,7 +28,6 @@ class PyExecutorTest {
     ScriptSource ss = mock(ScriptSource.class);
     when(ss.exists(eq(SupportedLanguage.PYTHON), any())).thenReturn(true);
 
-    Source src = mock(Source.class);
     when(ss.open(eq(SupportedLanguage.PYTHON), any())).thenReturn(mock(java.io.Reader.class));
 
     return ss;

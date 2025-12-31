@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 /// ```
 public class StringCaseConverter {
 
+  private StringCaseConverter() {}
+
   /// ### snakeToCamel
   /// Converts a string from `snake_case` to `camelCase`.
   ///
