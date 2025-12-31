@@ -30,7 +30,7 @@
         <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <!--        Sonar config    -->
-        <sonar-plugin.version>3.11.0.3922</sonar-plugin.version>
+        <sonar-plugin.version>5.5.0.6356</sonar-plugin.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>ih0r-d</sonar.organization>
         <sonar.projectKey>ih0r-d_polyglot-adapter</sonar.projectKey>
