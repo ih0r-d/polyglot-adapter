@@ -22,16 +22,17 @@ public final class PolyglotClientFactoryBean<T> implements FactoryBean<T> {
   private final Class<T> clientType;
 
   /// Holder for available polyglot executors.
-  @Autowired private PolyglotExecutors executors;
+  private final PolyglotExecutors executors;
 
   /// Creates a new factory bean for the given client interface.
   ///
   /// @param className fully qualified name of the client interface
   /// @throws PolyglotClientClassNotFoundException if the class cannot be loaded
   @SuppressWarnings("unchecked")
-  public PolyglotClientFactoryBean(String className) {
+  public PolyglotClientFactoryBean(String className, PolyglotExecutors executors) {
     try {
       this.clientType = (Class<T>) Class.forName(className);
+      this.executors = executors;
     } catch (ClassNotFoundException e) {
       throw new PolyglotClientClassNotFoundException(className, e);
     }
@@ -46,6 +47,7 @@ public final class PolyglotClientFactoryBean<T> implements FactoryBean<T> {
     }
 
     SupportedLanguage language = resolveLanguage(annotation);
+    @SuppressWarnings("resource")
     AbstractPolyglotExecutor executor = resolveExecutor(language);
 
     try {
