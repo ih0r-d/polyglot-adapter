@@ -1,7 +1,6 @@
 package io.github.ih0rd.polyglot.spring.client;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import io.github.ih0rd.adapter.context.AbstractPolyglotExecutor;
 import io.github.ih0rd.adapter.context.SupportedLanguage;
@@ -14,7 +13,7 @@ import io.github.ih0rd.polyglot.spring.client.exceptions.PolyglotClientResolutio
 /// FactoryBean that creates a Spring-managed polyglot client.
 ///
 /// The produced bean is backed by an {@link AbstractPolyglotExecutor} and delegates all method
-// calls via
+/// calls via
 /// {@code executor.bind(Class)}.
 public final class PolyglotClientFactoryBean<T> implements FactoryBean<T> {
 
