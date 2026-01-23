@@ -19,7 +19,7 @@
         <maven.compiler.release>25</maven.compiler.release>
         <staging-maven-plugin.version>1.6.13</staging-maven-plugin.version>
         <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
-        <spotless-plugin.version>3.1.0</spotless-plugin.version>
+        <spotless-plugin.version>3.2.0</spotless-plugin.version>
         <jacoco-plugin.version>0.8.14</jacoco-plugin.version>
         <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
@@ -32,13 +32,15 @@
         <jacoco.coverage.instruction.minimum>0.60</jacoco.coverage.instruction.minimum>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <flatten-plugin.version>1.7.3</flatten-plugin.version>
-        <publishing-plugin.version>0.9.0</publishing-plugin.version>
+
+        <publishing-plugin.version>0.10.0</publishing-plugin.version>
         <javadoc-plugin.version>3.12.0</javadoc-plugin.version>
         <source-plugin.version>3.4.0</source-plugin.version>
         <gpg-plugin.version>3.2.8</gpg-plugin.version>
         <gpg-passphrase>${env.GPG_PASSPHRASE}</gpg-passphrase>
-        <graal.version>25.0.1</graal.version>
-        <junit.version>6.0.1</junit.version>
+
+        <graal.version>25.0.2</graal.version>
+        <junit.version>6.0.2</junit.version>
         <mockito.version>5.21.0</mockito.version>
         <mockito-inline.version>5.2.0</mockito-inline.version>
         <assertj.version>3.27.6</assertj.version>
