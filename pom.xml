@@ -19,10 +19,10 @@
         <maven.compiler.release>25</maven.compiler.release>
         <staging-maven-plugin.version>1.6.13</staging-maven-plugin.version>
         <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
-        <spotless-plugin.version>3.2.0</spotless-plugin.version>
+        <spotless-plugin.version>3.2.1</spotless-plugin.version>
         <jacoco-plugin.version>0.8.14</jacoco-plugin.version>
         <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
-        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <!--        Sonar config    -->
         <sonar-plugin.version>5.5.0.6356</sonar-plugin.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -43,7 +43,7 @@
         <junit.version>6.0.2</junit.version>
         <mockito.version>5.21.0</mockito.version>
         <mockito-inline.version>5.2.0</mockito-inline.version>
-        <assertj.version>3.27.6</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
         <bcpg.version>1.83</bcpg.version>
         <spring-boot.version>4.0.3</spring-boot.version>
     </properties>
