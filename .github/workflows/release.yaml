@@ -41,8 +41,62 @@ jobs:
           mvn -B -ntp -DskipTests -Prelease deploy \
             -Dgpg.passphrase="${GPG_PASSPHRASE}"
 
+      - name: Extract Release Notes
+        id: extract_notes
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "Extracting notes for version $VERSION"
+          
+          awk -v ver="$VERSION" '
+            /^## \[/ { 
+              if (index($0, "[" ver "]")) { 
+                p=1; 
+                next 
+              } else { 
+                p=0 
+              } 
+            } 
+            p
+          ' CHANGELOG.md > RELEASE_NOTES.md
+          
+          echo "Release Notes Content:"
+          cat RELEASE_NOTES.md
+
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
+          bodyFile: RELEASE_NOTES.md
+
+  post-release:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+          cache: maven
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+      - name: Bump Version
+        run: |
+          chmod +x scripts/bump.sh
+          ./scripts/bump.sh patch
+
+      - name: Push Changes
+        run: git push origin main
