@@ -37,6 +37,11 @@ echo "🔧 Setting version $VERSION for all modules"
 # CHANGELOG
 # ------------------------------------------------------------------
 
+if ! command -v git-cliff &> /dev/null; then
+  echo "❌ git-cliff is not installed. Please install it (e.g., cargo install git-cliff)."
+  exit 1
+fi
+
 if [ ! -f CHANGELOG.md ]; then
   echo "📝 Generating initial CHANGELOG.md"
   git cliff --config .git-cliff.toml --output CHANGELOG.md

@@ -36,7 +36,7 @@
         <sonar.projectKey>ih0r-d_polyglot-adapter</sonar.projectKey>
 
         <!--        Temporary 60% coverage-->
-        <jacoco.coverage.instruction.minimum>0.60</jacoco.coverage.instruction.minimum>
+        <jacoco.coverage.instruction.minimum>0.80</jacoco.coverage.instruction.minimum>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <flatten-plugin.version>1.7.3</flatten-plugin.version>
 
