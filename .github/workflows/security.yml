@@ -27,20 +27,15 @@ jobs:
       - name: Build project
         run: mvn -B -ntp -DskipTests clean package
 
-      - name: OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "polyglot-adapter"
-          path: "."
-          format: "HTML"
-          out: "dependency-check-report"
-          args: >
-            --failOnCVSS 7
-            --enableRetired
-            --nvdApiKey ${{ secrets.NVD_API_KEY }}
+      - name: OWASP Dependency-Check (offline)
+        run: |
+          mvn -B -ntp org.owasp:dependency-check-maven:check \
+            -DskipTests \
+            -DfailBuildOnCVSS=7 \
+            -DautoUpdate=false
 
       - name: Upload report
         uses: actions/upload-artifact@v6
         with:
           name: dependency-check-report
-          path: dependency-check-report
+          path: target/dependency-check-report.html
