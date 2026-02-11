@@ -1,28 +1,23 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>io.github.ih0r-d</groupId>
     <artifactId>polyglot-adapter-parent</artifactId>
     <version>0.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-
     <name>polyglot-adapter-parent</name>
     <description>Lightweight Java SDK for executing polyglot code via GraalVM</description>
     <url>https://github.com/ih0r-d/polyglot-adapter</url>
-
     <modules>
         <module>polyglot-bom</module>
         <module>polyglot-core</module>
         <module>polyglot-spring-boot-starter</module>
+        <module>polyglot-codegen</module>
     </modules>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
-
         <staging-maven-plugin.version>1.6.13</staging-maven-plugin.version>
         <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
         <spotless-plugin.version>3.1.0</spotless-plugin.version>
@@ -34,42 +29,35 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>ih0r-d</sonar.organization>
         <sonar.projectKey>ih0r-d_polyglot-adapter</sonar.projectKey>
-
         <!--        Temporary 60% coverage-->
         <jacoco.coverage.instruction.minimum>0.60</jacoco.coverage.instruction.minimum>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <flatten-plugin.version>1.7.3</flatten-plugin.version>
-
         <publishing-plugin.version>0.9.0</publishing-plugin.version>
         <javadoc-plugin.version>3.12.0</javadoc-plugin.version>
         <source-plugin.version>3.4.0</source-plugin.version>
         <gpg-plugin.version>3.2.8</gpg-plugin.version>
         <gpg-passphrase>${env.GPG_PASSPHRASE}</gpg-passphrase>
-
         <graal.version>25.0.1</graal.version>
         <junit.version>6.0.1</junit.version>
         <mockito.version>5.21.0</mockito.version>
         <mockito-inline.version>5.2.0</mockito-inline.version>
         <assertj.version>3.27.6</assertj.version>
         <bcpg.version>1.83</bcpg.version>
-
         <spring-boot.version>4.0.1</spring-boot.version>
     </properties>
-
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
             <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
-
     <scm>
         <connection>scm:git:git://github.com/ih0r-d/polyglot-adapter.git</connection>
         <developerConnection>scm:git:ssh://github.com:ih0r-d/polyglot-adapter.git</developerConnection>
         <url>https://github.com/ih0r-d/polyglot-adapter</url>
         <tag>HEAD</tag>
     </scm>
-
     <developers>
         <developer>
             <id>ih0rd</id>
@@ -77,7 +65,6 @@
             <url>https://github.com/ih0r-d</url>
         </developer>
     </developers>
-
     <distributionManagement>
         <snapshotRepository>
             <id>central</id>
@@ -88,14 +75,12 @@
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-
     <pluginRepositories>
         <pluginRepository>
             <id>central</id>
             <url>https://repo.maven.apache.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
-
     <dependencyManagement>
         <dependencies>
             <!-- core itself -->
@@ -104,7 +89,6 @@
                 <artifactId>polyglot-adapter</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
             <!-- GraalVM core -->
             <dependency>
                 <groupId>org.graalvm.sdk</groupId>
@@ -116,7 +100,6 @@
                 <artifactId>polyglot</artifactId>
                 <version>${graal.version}</version>
             </dependency>
-
             <!-- GraalPy -->
             <dependency>
                 <groupId>org.graalvm.python</groupId>
@@ -128,7 +111,6 @@
                 <artifactId>python-embedding</artifactId>
                 <version>${graal.version}</version>
             </dependency>
-
             <!-- GraalJS -->
             <dependency>
                 <groupId>org.graalvm.js</groupId>
@@ -136,14 +118,12 @@
                 <version>${graal.version}</version>
                 <type>pom</type>
             </dependency>
-
             <!-- crypto -->
             <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpg-jdk18on</artifactId>
                 <version>${bcpg.version}</version>
             </dependency>
-
             <!-- test deps -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -170,7 +150,6 @@
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
             </dependency>
-
             <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -181,7 +160,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <build>
         <pluginManagement>
             <plugins>
@@ -202,7 +180,6 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -249,7 +226,6 @@
             </plugin>
         </plugins>
     </build>
-
     <profiles>
         <profile>
             <id>release</id>
@@ -264,7 +240,6 @@
                             <publishingServerId>central</publishingServerId>
                         </configuration>
                     </plugin>
-
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
@@ -282,7 +257,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
@@ -296,7 +270,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -322,5 +295,4 @@
             </build>
         </profile>
     </profiles>
-
 </project>
