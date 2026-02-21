@@ -1,146 +1,89 @@
 package io.github.ih0rd.codegen.parsers;
 
-import io.github.ih0rd.contract.CodegenConfig;
-import io.github.ih0rd.contract.ScriptDescriptor;
+import io.github.ih0rd.codegen.types.PythonTypeMapper;
+import io.github.ih0rd.contract.*;
+import io.github.ih0rd.contract.types.*;
 
-import io.github.ih0rd.contract.ContractClass;
-import io.github.ih0rd.contract.ContractMethod;
-import io.github.ih0rd.contract.ContractModel;
-import io.github.ih0rd.contract.ContractParam;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/// # PythonAstParser
-///
-/// Structural Python AST parser (v1).
-///
-/// This parser performs **static, non-executing analysis** of Python source code
-/// to extract contract definitions for Java interface generation.
-///
-/// ---
-///
-/// ## Supported features:
-/// - Detection of exported classes via `polyglot.export_value`
-/// - Extraction of top-level class methods
-/// - Optional filtering via `@adapter_include` decorator
-/// - Indentation-aware class body detection (tabs and spaces supported)
-///
-/// ## Explicit non-goals (v1):
-/// - Type inference
-/// - Nested classes
-/// - Decorators with arguments
-/// - Multiple exported classes per file
-/// - Python runtime execution
-///
-/// ---
-///
-/// ## Design notes:
-/// - This is **NOT** a full Python parser
-/// - Indentation is treated structurally, not semantically
-/// - The implementation is intentionally conservative and predictable
-///
 public final class PythonAstParser {
 
-    /// Matches:
-    /// polyglot.export_value("ClassName", ClassName)
     private static final Pattern EXPORT_PATTERN =
-            Pattern.compile(
-                    "polyglot\\.export_value\\(\\s*[\"'](\\w+)[\"']\\s*,\\s*(\\w+)\\s*\\)");
+            Pattern.compile("polyglot\\.export_value\\(\\s*[\"'](\\w+)[\"']\\s*,\\s*(\\w+)\\s*\\)");
 
-    /// Matches:
-    /// class ClassName:
     private static final Pattern CLASS_PATTERN =
             Pattern.compile("^\\s*class\\s+(\\w+)\\s*:");
 
-    /// Matches:
-    /// def method(self, ...):
     private static final Pattern METHOD_PATTERN =
-            Pattern.compile("^\\s*def\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*:");
+            Pattern.compile("^\\s*def\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*(?:->\\s*(\\w+))?\\s*:");
 
+    private static final Pattern PARAM_PATTERN =
+            Pattern.compile("(\\w+)\\s*(?::\\s*(\\w+))?");
 
-    /// Marker decorator used to explicitly include methods
-    private static final String PYTHON_DECORATOR_INCLUDE = "@adapter_include";
+    private final PythonTypeMapper mapper = new PythonTypeMapper();
 
-    /// Normalized indentation width for a single tab
-    private static final int TAB_WIDTH = 4;
-
-    /// ### parse
-    ///
-    /// Parses Python source code and produces a {@link ContractModel}.
-    ///
-    /// @param script script descriptor containing source and metadata
-    /// @param config code generation configuration
-    /// @return generated contract model
-    ///
-    /// @throws IllegalStateException if no exported class is found
     public ContractModel parse(ScriptDescriptor script, CodegenConfig config) {
+
         String source = script.source();
         String[] lines = source.split("\\R");
 
         String exportedClass = findExportedClass(source);
         if (exportedClass == null) {
-            throw new IllegalStateException(
-                    "No polyglot.export_value found"
-                            + (script.fileName() != null ? " in " + script.fileName() : "")
-            );
+            throw new IllegalStateException("No polyglot.export_value found");
         }
 
         boolean insideClass = false;
-        boolean includeNext = false;
-        int classIndentLevel = -1;
+        int classIndent = -1;
 
         List<ContractMethod> methods = new ArrayList<>();
 
-        for (String rawLine : lines) {
+        for (int i = 0; i < lines.length; i++) {
+
+            String rawLine = lines[i];
             String line = rawLine.stripTrailing();
 
-            // --- Class detection -------------------------------------------------
             if (!insideClass) {
                 Matcher classMatcher = CLASS_PATTERN.matcher(line);
                 if (classMatcher.find()
                         && classMatcher.group(1).equals(exportedClass)) {
                     insideClass = true;
-                    classIndentLevel = indentLevel(rawLine);
+                    classIndent = indentLevel(rawLine);
                 }
                 continue;
             }
 
-            // --- Exit class on dedent -------------------------------------------
-            if (!line.isBlank()
-                    && indentLevel(rawLine) <= classIndentLevel) {
+            if (!line.isBlank() && indentLevel(rawLine) <= classIndent) {
                 break;
             }
 
-            // --- Decorator detection --------------------------------------------
-            if (line.trim().equals(PYTHON_DECORATOR_INCLUDE)) {
-                includeNext = true;
+            Matcher methodMatcher = METHOD_PATTERN.matcher(line);
+            if (!methodMatcher.find()) {
                 continue;
             }
 
-            // --- Method detection -----------------------------------------------
-            Matcher methodMatcher = METHOD_PATTERN.matcher(line);
-            if (methodMatcher.find()) {
-                String methodName = methodMatcher.group(1);
-                String paramsRaw = methodMatcher.group(2);
-
-                boolean allowed =
-                        !methodName.startsWith("_")
-                                && (!config.onlyIncludedMethods() || includeNext);
-
-                includeNext = false;
-
-                if (allowed) {
-                    methods.add(
-                            new ContractMethod(
-                                    methodName,
-                                    parseParams(paramsRaw),
-                                    "Object"
-                            )
-                    );
-                }
+            String methodName = methodMatcher.group(1);
+            if (methodName.startsWith("_")) {
+                continue;
             }
+
+            String rawParams = methodMatcher.group(2);
+            String rawReturn = methodMatcher.group(3);
+
+            List<ContractParam> params = parseParams(rawParams);
+
+            PolyType returnType;
+
+            if (rawReturn != null) {
+                returnType = mapper.mapPrimitive(rawReturn);
+            } else {
+                returnType = inferReturnType(lines, i + 1, indentLevel(rawLine));
+            }
+
+            methods.add(
+                    new ContractMethod(methodName, params, returnType)
+            );
         }
 
         return new ContractModel(
@@ -148,56 +91,70 @@ public final class PythonAstParser {
         );
     }
 
-    /// ### findExportedClass
-    ///
-    /// Detects the exported class name from `polyglot.export_value`.
+    private PolyType inferReturnType(String[] lines, int start, int methodIndent) {
+
+        for (int i = start; i < lines.length; i++) {
+
+            String line = lines[i].trim();
+
+            if (line.startsWith("return [")) {
+                return new PolyList(PolyPrimitive.INT); // simple heuristic
+            }
+
+            if (line.startsWith("return {")) {
+                return new PolyMap(PolyPrimitive.STRING, PolyPrimitive.INT);
+            }
+
+            if (!line.isBlank() && indentLevel(lines[i]) <= methodIndent) {
+                break;
+            }
+        }
+
+        return new PolyUnknown();
+    }
+
     private String findExportedClass(String source) {
         Matcher m = EXPORT_PATTERN.matcher(source);
         return m.find() ? m.group(2) : null;
     }
 
-    /// ### parseParams
-    ///
-    /// Parses method parameters and drops `self`.
-    ///
-    /// All parameter types are mapped to `Object` in v1.
     private List<ContractParam> parseParams(String raw) {
+
         List<ContractParam> params = new ArrayList<>();
         if (raw == null || raw.isBlank()) {
             return params;
         }
 
         String[] parts = raw.split(",");
-        for (String p : parts) {
-            String name = p.trim();
-            if (name.equals("self") || name.isEmpty()) {
-                continue;
-            }
-            params.add(new ContractParam(name, "Object"));
+
+        for (String part : parts) {
+
+            String trimmed = part.trim();
+            if (trimmed.equals("self")) continue;
+
+            Matcher matcher = PARAM_PATTERN.matcher(trimmed);
+            if (!matcher.find()) continue;
+
+            String name = matcher.group(1);
+            String rawType = matcher.group(2);
+
+            PolyType type =
+                    rawType != null
+                            ? mapper.mapPrimitive(rawType)
+                            : new PolyUnknown();
+
+            params.add(new ContractParam(name, type));
         }
+
         return params;
     }
 
-    /// ### indentLevel
-    ///
-    /// Computes indentation level of a line.
-    ///
-    /// Rules:
-    /// - Spaces count as 1
-    /// - Tabs count as {@link #TAB_WIDTH}
-    ///
-    /// @param line raw source line
-    /// @return normalized indentation level
     private int indentLevel(String line) {
         int count = 0;
         for (char c : line.toCharArray()) {
-            if (c == ' ') {
-                count++;
-            } else if (c == '\t') {
-                count += TAB_WIDTH;
-            } else {
-                break;
-            }
+            if (c == ' ') count++;
+            else if (c == '\t') count += 4;
+            else break;
         }
         return count;
     }

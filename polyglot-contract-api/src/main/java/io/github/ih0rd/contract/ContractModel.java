@@ -10,6 +10,16 @@ import java.util.List;
 /// - Aggregate all discovered contract classes
 /// - Act as a transport object between parsing and generation stages
 ///
-public record ContractModel(List<ContractClass> classes) {
+/// Design notes:
+/// - Language-agnostic
+/// - Immutable and defensive-copy safe
+/// - Does not contain rendering or runtime logic
+///
+public record ContractModel(
+        List<ContractClass> classes
+) {
 
+    public ContractModel {
+        classes = List.copyOf(classes);
+    }
 }
