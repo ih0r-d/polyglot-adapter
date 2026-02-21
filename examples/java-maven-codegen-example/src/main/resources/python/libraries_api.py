@@ -8,7 +8,9 @@ class LibrariesApi:
 
     def genUsers(self, n: int = 5):
         return [
-            {"name": self.fake.name(), "email": self.fake.email(), "country": self.fake.country()}
+            {"name": self.fake.name(),
+             "email": self.fake.email(),
+             "country": self.fake.country()}
             for _ in range(n)
         ]
 
