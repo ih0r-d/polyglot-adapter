@@ -37,6 +37,8 @@
         <!-- GraalVM / GraalPy -->
         <graal.version>25.0.1</graal.version>
         <graalpy-plugin.version>25.0.1</graalpy-plugin.version>
+        <graalpy-plugin-snapshot.version>26.0.0-SNAPSHOT</graalpy-plugin-snapshot.version>
+
     </properties>
 
     <!-- Polyglot BOM (versions for adapter + starter + GraalVM)  -->
@@ -106,22 +108,11 @@
             <plugin>
                 <groupId>org.graalvm.python</groupId>
                 <artifactId>graalpy-maven-plugin</artifactId>
-                <version>${graalpy-plugin.version}</version>
+                <version>${graalpy-plugin-snapshot.version}</version>
                 <configuration>
-                    <packages>
-                        <package>${python.package.1}</package>
-                        <package>${python.package.2}</package>
-                        <package>${python.package.3}</package>
-                    </packages>
+                    <requirementsFile>requirements.txt</requirementsFile>
                 </configuration>
                 <executions>
-                    <execution>
-                        <id>lock-python-packages</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>lock-packages</goal>
-                        </goals>
-                    </execution>
                     <execution>
                         <id>generate-python-resources</id>
                         <phase>generate-resources</phase>
@@ -131,6 +122,23 @@
                     </execution>
                 </executions>
             </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.graalvm.python</groupId>-->
+<!--                <artifactId>graalpy-maven-plugin</artifactId>-->
+<!--                <version>${graalpy-plugin-snapshot.version}</version>-->
+<!--                <configuration>-->
+<!--                    <requirementsFile>requirements.txt</requirementsFile>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>generate-python-resources</id>-->
+<!--                        <phase>generate-resources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>process-graalpy-resources</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 

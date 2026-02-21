@@ -1,7 +1,7 @@
 package io.github.ih0rd.examples;
 
-import io.github.ih0rd.adapter.context.SupportedLanguage;
-import io.github.ih0rd.adapter.script.ScriptSource;
+import io.github.ih0rd.contract.SupportedLanguage;
+import io.github.ih0rd.contract.ScriptSource;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;

@@ -1,0 +1,63 @@
+### =========================
+### StatsController
+### =========================
+
+### Random numbers
+GET http://localhost:8080/stats/random?n=5
+Accept: application/json
+
+###
+
+### Stats data
+GET http://localhost:8080/stats/data?n=10
+Accept: application/json
+
+###
+
+### Stats table
+GET http://localhost:8080/stats/table?n=7
+Accept: text/plain
+
+### =========================
+### LibrariesController
+### =========================
+
+###
+
+### Generate users
+GET http://localhost:8080/libs/users?n=5
+Accept: application/json
+
+###
+
+### Users table
+GET http://localhost:8080/libs/users/table?n=5
+Accept: text/plain
+
+###
+
+### Fake paragraphs
+GET http://localhost:8080/libs/paragraphs?n=10
+Accept: text/plain
+
+### =========================
+### ForecastController
+### =========================
+
+###
+
+### Forecast example
+POST http://localhost:8080/forecast?steps=5&seasonPeriod=4
+Content-Type: application/json
+Accept: application/json
+
+[
+  120.0,
+  130.0,
+  125.0,
+  140.0,
+  150.0,
+  160.0,
+  170.0,
+  165.0
+]

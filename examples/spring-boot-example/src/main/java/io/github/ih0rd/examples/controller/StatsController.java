@@ -20,7 +20,7 @@ public class StatsController {
         return stats.randomNumbers(n);
     }
 
-    @GetMapping
+    @GetMapping("/data")
     public Map<String, Object> stats(@RequestParam int n) {
         return stats.stats(n);
     }

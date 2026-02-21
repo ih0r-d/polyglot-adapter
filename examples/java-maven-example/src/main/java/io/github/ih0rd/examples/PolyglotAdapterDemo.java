@@ -3,11 +3,10 @@ package io.github.ih0rd.examples;
 import io.github.ih0rd.adapter.context.JsExecutor;
 import io.github.ih0rd.adapter.context.PolyglotHelper;
 import io.github.ih0rd.adapter.context.PyExecutor;
-import io.github.ih0rd.adapter.context.SupportedLanguage;
-import io.github.ih0rd.adapter.script.ScriptSource;
+import io.github.ih0rd.contract.SupportedLanguage;
+import io.github.ih0rd.contract.ScriptSource;
 import io.github.ih0rd.examples.contracts.BrokenForecastService;
 import io.github.ih0rd.examples.contracts.ForecastService;
-import io.github.ih0rd.examples.contracts.SimplexSolver;
 import io.github.ih0rd.examples.contracts.StatsApi;
 
 import java.nio.file.Path;
