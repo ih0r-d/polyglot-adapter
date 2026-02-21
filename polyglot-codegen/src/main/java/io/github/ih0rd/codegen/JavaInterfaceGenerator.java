@@ -33,8 +33,7 @@ public final class JavaInterfaceGenerator {
             /// Do not modify this file manually.
 
             """;
-
-    private final JavaTypeRenderer renderer = new JavaTypeRenderer();
+    JavaTypeRenderer renderer = new JavaTypeRenderer();
 
     /// ### generate
     ///

@@ -12,7 +12,7 @@ import io.github.ih0rd.contract.SupportedLanguage;
 /// Implementations are responsible for parsing source code
 /// of a specific language into a {@link ContractModel}.
 ///
-public interface LanguageAstParser {
+public interface LanguageParser {
 
     /// @return supported language
     SupportedLanguage language();
