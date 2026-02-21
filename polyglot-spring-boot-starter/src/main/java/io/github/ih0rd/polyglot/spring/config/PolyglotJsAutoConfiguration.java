@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ResourceLoader;
 
 import io.github.ih0rd.adapter.context.JsExecutor;
-import io.github.ih0rd.adapter.context.SupportedLanguage;
-import io.github.ih0rd.adapter.script.ScriptSource;
+import io.github.ih0rd.contract.ScriptSource;
+import io.github.ih0rd.contract.SupportedLanguage;
 import io.github.ih0rd.polyglot.spring.context.SpringPolyglotContextFactory;
 import io.github.ih0rd.polyglot.spring.properties.PolyglotProperties;
 import io.github.ih0rd.polyglot.spring.script.SpringResourceScriptSource;

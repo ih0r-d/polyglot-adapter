@@ -3,7 +3,7 @@ package io.github.ih0rd.polyglot.spring.client;
 import org.springframework.beans.factory.FactoryBean;
 
 import io.github.ih0rd.adapter.context.AbstractPolyglotExecutor;
-import io.github.ih0rd.adapter.context.SupportedLanguage;
+import io.github.ih0rd.contract.SupportedLanguage;
 import io.github.ih0rd.polyglot.spring.PolyglotExecutors;
 import io.github.ih0rd.polyglot.spring.client.exceptions.MissingPolyglotClientAnnotationException;
 import io.github.ih0rd.polyglot.spring.client.exceptions.PolyglotClientBindingException;

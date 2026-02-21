@@ -39,7 +39,7 @@ Import the BOM (recommended) and add the starter:
 <dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>io.github.ih0r-d</groupId>
+      <groupId>io.github.ih0rd</groupId>
       <artifactId>polyglot-bom</artifactId>
       <version>${polyglot.version}</version>
       <type>pom</type>
@@ -50,7 +50,7 @@ Import the BOM (recommended) and add the starter:
 
 <dependencies>
   <dependency>
-    <groupId>io.github.ih0r-d</groupId>
+    <groupId>io.github.ih0rd</groupId>
     <artifactId>polyglot-spring-boot-starter</artifactId>
   </dependency>
 </dependencies>
@@ -226,7 +226,7 @@ public class DemoService {
 ### 1) Define a contract
 
 ```java
-import io.github.ih0rd.adapter.context.SupportedLanguage;
+import io.github.ih0rd.contract.SupportedLanguage;
 import io.github.ih0rd.polyglot.spring.client.PolyglotClient;
 
 @PolyglotClient(languages = SupportedLanguage.PYTHON)

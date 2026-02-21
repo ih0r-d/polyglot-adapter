@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>polyglot-adapter-parent</artifactId>
+        <groupId>io.github.ih0r-d</groupId>
+        <version>0.1.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>polyglot-codegen</artifactId>
+    <packaging>jar</packaging>
+
+    <name>polyglot-codegen</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.ih0r-d</groupId>
+            <artifactId>polyglot-contract-api</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+    </dependencies>
+
+<!--    <properties>-->
+<!--        <exec-maven-plugin.version>3.6.2</exec-maven-plugin.version>-->
+<!--    </properties>-->
+<!---->
+<!--    <build>-->
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>exec-maven-plugin</artifactId>-->
+<!--                <version>${exec-maven-plugin.version}</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>polyglot-codegen</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>java</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <mainClass>io.github.ih0rd.codegen.cli.CodegenMain</mainClass>-->
+<!--                            <arguments>-->
+<!--                                <argument>${project.basedir}/src/main/python</argument>-->
+<!--                                <argument>${project.build.directory}/generated-sources/polyglot</argument>-->
+<!--                            </arguments>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
+<!--    </build>-->
+
+</project>

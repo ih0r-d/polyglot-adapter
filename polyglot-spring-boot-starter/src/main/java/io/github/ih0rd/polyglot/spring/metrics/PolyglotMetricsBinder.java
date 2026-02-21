@@ -10,7 +10,7 @@ import org.springframework.beans.factory.ObjectProvider;
 
 import io.github.ih0rd.adapter.context.JsExecutor;
 import io.github.ih0rd.adapter.context.PyExecutor;
-import io.github.ih0rd.adapter.context.SupportedLanguage;
+import io.github.ih0rd.contract.SupportedLanguage;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;

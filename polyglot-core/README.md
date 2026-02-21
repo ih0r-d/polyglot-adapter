@@ -61,7 +61,7 @@ polyglot-adapter/
 ## 📦 Installation
 ```xml
 <dependency>
-  <groupId>io.github.ih0r-d</groupId>
+  <groupId>io.github.ih0rd</groupId>
   <artifactId>polyglot-adapter</artifactId>
   <version>0.1.0</version>
 </dependency>

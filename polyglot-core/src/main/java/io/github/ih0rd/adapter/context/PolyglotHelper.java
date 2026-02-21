@@ -7,6 +7,8 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.python.embedding.GraalPyResources;
 import org.graalvm.python.embedding.VirtualFileSystem;
 
+import io.github.ih0rd.contract.SupportedLanguage;
+
 /// # PolyglotHelper
 ///
 /// Lightweight helper for creating and initializing GraalVM {@link Context} instances.

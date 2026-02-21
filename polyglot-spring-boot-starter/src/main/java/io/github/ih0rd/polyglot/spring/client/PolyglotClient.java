@@ -4,7 +4,7 @@ import java.lang.annotation.*;
 
 import org.springframework.stereotype.Component;
 
-import io.github.ih0rd.adapter.context.SupportedLanguage;
+import io.github.ih0rd.contract.SupportedLanguage;
 
 /// Marks an interface as a polyglot-backed client.
 ///

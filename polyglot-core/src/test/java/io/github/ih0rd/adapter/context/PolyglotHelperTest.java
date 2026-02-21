@@ -16,6 +16,8 @@ import org.graalvm.python.embedding.VirtualFileSystem;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
+import io.github.ih0rd.contract.SupportedLanguage;
+
 @SuppressWarnings({"resource", "unchecked"})
 class PolyglotHelperTest {
 

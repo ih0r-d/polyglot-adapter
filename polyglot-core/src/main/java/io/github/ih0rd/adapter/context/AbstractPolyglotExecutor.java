@@ -15,7 +15,8 @@ import io.github.ih0rd.adapter.exceptions.BindingException;
 import io.github.ih0rd.adapter.exceptions.EvaluationException;
 import io.github.ih0rd.adapter.exceptions.InvocationException;
 import io.github.ih0rd.adapter.exceptions.ScriptNotFoundException;
-import io.github.ih0rd.adapter.script.ScriptSource;
+import io.github.ih0rd.contract.ScriptSource;
+import io.github.ih0rd.contract.SupportedLanguage;
 
 /// # AbstractPolyglotExecutor
 ///

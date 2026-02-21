@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import io.github.ih0rd.adapter.exceptions.BindingException;
 import io.github.ih0rd.adapter.exceptions.InvocationException;
-import io.github.ih0rd.adapter.script.ScriptSource;
+import io.github.ih0rd.contract.ScriptSource;
+import io.github.ih0rd.contract.SupportedLanguage;
 
 @SuppressWarnings({"unchecked"})
 class AbstractExecutorTest {

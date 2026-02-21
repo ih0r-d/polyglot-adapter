@@ -8,8 +8,8 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
-import io.github.ih0rd.adapter.context.SupportedLanguage;
-import io.github.ih0rd.adapter.script.ScriptSource;
+import io.github.ih0rd.contract.ScriptSource;
+import io.github.ih0rd.contract.SupportedLanguage;
 
 /// # SpringResourceScriptSource
 ///

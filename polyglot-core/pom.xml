@@ -18,6 +18,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.github.ih0r-d</groupId>
+            <artifactId>polyglot-contract-api</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.graalvm.sdk</groupId>
             <artifactId>graal-sdk</artifactId>
         </dependency>

@@ -4,7 +4,7 @@ import org.graalvm.polyglot.Context;
 import org.springframework.beans.factory.ObjectProvider;
 
 import io.github.ih0rd.adapter.context.PolyglotHelper;
-import io.github.ih0rd.adapter.context.SupportedLanguage;
+import io.github.ih0rd.contract.SupportedLanguage;
 
 public final class SpringPolyglotContextFactory {
 

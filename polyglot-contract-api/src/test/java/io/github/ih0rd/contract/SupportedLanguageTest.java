@@ -1,6 +1,6 @@
-package io.github.ih0rd.adapter.context;
+package io.github.ih0rd.contract;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 

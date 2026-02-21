@@ -24,6 +24,12 @@
             <groupId>io.github.ih0r-d</groupId>
             <artifactId>polyglot-adapter</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.ih0r-d</groupId>
+            <artifactId>polyglot-contract-api</artifactId>
+            <version>${parent.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- Spring Boot auto-config -->
         <dependency>

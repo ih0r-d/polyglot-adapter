@@ -1,9 +1,9 @@
-package io.github.ih0rd.adapter.script;
+package io.github.ih0rd.contract;
 
 import java.io.IOException;
 import java.io.Reader;
 
-import io.github.ih0rd.adapter.context.SupportedLanguage;
+import io.github.ih0rd.contract.SupportedLanguage;
 
 /// # ScriptSource
 ///

@@ -59,7 +59,7 @@ Import the BOM and then add the module(s) you need without versions:
 <dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>io.github.ih0r-d</groupId>
+      <groupId>io.github.ih0rd</groupId>
       <artifactId>polyglot-bom</artifactId>
       <version>${polyglot.version}</version>
       <type>pom</type>
@@ -73,7 +73,7 @@ Import the BOM and then add the module(s) you need without versions:
 
 ```xml
 <dependency>
-  <groupId>io.github.ih0r-d</groupId>
+  <groupId>io.github.ih0rd</groupId>
   <artifactId>polyglot-adapter</artifactId>
 </dependency>
 ```
@@ -82,7 +82,7 @@ Import the BOM and then add the module(s) you need without versions:
 
 ```xml
 <dependency>
-  <groupId>io.github.ih0r-d</groupId>
+  <groupId>io.github.ih0rd</groupId>
   <artifactId>polyglot-spring-boot-starter</artifactId>
 </dependency>
 ```

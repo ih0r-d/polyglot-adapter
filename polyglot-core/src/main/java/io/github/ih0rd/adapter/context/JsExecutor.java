@@ -12,7 +12,8 @@ import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
 import io.github.ih0rd.adapter.exceptions.BindingException;
-import io.github.ih0rd.adapter.script.ScriptSource;
+import io.github.ih0rd.contract.ScriptSource;
+import io.github.ih0rd.contract.SupportedLanguage;
 
 /// # JsExecutor
 ///
