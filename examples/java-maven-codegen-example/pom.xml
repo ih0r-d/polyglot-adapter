@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.ih0rd.examples</groupId>
@@ -9,98 +11,171 @@
     <version>1.0-SNAPSHOT</version>
 
     <name>java-maven-codegen-example</name>
-    <!-- FIXME change it to the project's website -->
     <url>http://www.example.com</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <exec-maven-plugin.version>3.6.2</exec-maven-plugin.version>
 
+        <!-- GraalPy packages used by example scripts -->
         <python.package.1>faker==26.0.0</python.package.1>
         <python.package.2>tabulate==0.9.0</python.package.2>
         <python.package.3>numpy==2.2.4</python.package.3>
+
         <graal.version>25.0.1</graal.version>
         <graalpy-plugin.version>25.0.1</graalpy-plugin.version>
         <polyglot-adapter.version>0.1.1-SNAPSHOT</polyglot-adapter.version>
     </properties>
 
     <dependencies>
+
+        <!-- Codegen CLI (temporary integration via exec plugin) -->
         <dependency>
             <groupId>io.github.ih0r-d</groupId>
             <artifactId>polyglot-codegen</artifactId>
-            <version>0.1.1-SNAPSHOT</version>
+            <version>${polyglot-adapter.version}</version>
         </dependency>
+
+        <!-- Shared contract model -->
         <dependency>
             <groupId>io.github.ih0r-d</groupId>
             <artifactId>polyglot-contract-api</artifactId>
             <version>${polyglot-adapter.version}</version>
         </dependency>
 
+        <!-- GraalVM Python runtime -->
         <dependency>
             <groupId>org.graalvm.python</groupId>
             <artifactId>python-launcher</artifactId>
             <version>${graal.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.graalvm.python</groupId>
             <artifactId>python-embedding</artifactId>
             <version>${graal.version}</version>
         </dependency>
-    </dependencies>
 
+    </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.graalvm.python</groupId>
-                <artifactId>graalpy-maven-plugin</artifactId>
-                <version>${graalpy-plugin.version}</version>
-                <configuration>
-                    <packages>
-                        <package>${python.package.1}</package>
-                        <package>${python.package.2}</package>
-                        <package>${python.package.3}</package>
-                    </packages>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>lock-python-packages</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>lock-packages</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>generate-python-resources</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>process-graalpy-resources</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>${exec-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>polyglot-codegen</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>io.github.ih0rd.codegen.cli.CodegenMain</mainClass>
-                            <arguments>
-                                <argument>${project.basedir}/src/main/resources/python</argument>
-                                <argument>${project.build.directory}/generated-sources/polyglot</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+            <!-- Default build is intentionally minimal.
+                 Code generation and Graal integration are controlled via profiles. -->
         </plugins>
     </build>
+
+    <profiles>
+
+        <!-- ========================================================= -->
+        <!-- Code generation profile                                   -->
+        <!-- Activated with: mvn clean install -Pcodegen               -->
+        <!-- Temporary solution until dedicated Maven plugin exists    -->
+        <!-- ========================================================= -->
+        <profile>
+            <id>codegen</id>
+            <build>
+                <plugins>
+
+                    <!-- Adds generated sources to compilation -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>add-generated-sources</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>
+                                            ${project.build.directory}/generated-sources/polyglot
+                                        </source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Executes polyglot-codegen CLI -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${exec-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>polyglot-codegen</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                                <configuration>
+                                    <mainClass>
+                                        io.github.ih0rd.codegen.cli.CodegenMain
+                                    </mainClass>
+                                    <arguments>
+                                        <argument>
+                                            ${project.basedir}/src/main/resources/python
+                                        </argument>
+                                        <argument>
+                                            ${project.build.directory}/generated-sources/polyglot
+                                        </argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- ========================================================= -->
+        <!-- GraalVM integration profile                               -->
+        <!-- Activated with: mvn clean install -Pgraal                 -->
+        <!-- Enables Python dependency locking and resource packaging  -->
+        <!-- ========================================================= -->
+        <profile>
+            <id>graal</id>
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <groupId>org.graalvm.python</groupId>
+                        <artifactId>graalpy-maven-plugin</artifactId>
+                        <version>${graalpy-plugin.version}</version>
+                        <configuration>
+                            <packages>
+                                <package>${python.package.1}</package>
+                                <package>${python.package.2}</package>
+                                <package>${python.package.3}</package>
+                            </packages>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>lock-python-packages</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>lock-packages</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>generate-python-resources</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>process-graalpy-resources</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
 
 </project>
