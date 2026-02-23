@@ -650,12 +650,7 @@ public final class PythonContractParser implements LanguageParser {
         return -1;
     }
 
-    private void updateScanState(
-            String s, int i,
-            int[] brackets,      // [square, curly, round]
-            boolean[] inQuote,   // [0]
-            char[] quoteChar     // [0]
-    ) {
+    private void updateScanState(String s, int i, int[] brackets, boolean[] inQuote, char[] quoteChar) {
         char c = s.charAt(i);
 
         if ((c == '\'' || c == '"') && (i == 0 || s.charAt(i - 1) != '\\')) {
@@ -668,18 +663,13 @@ public final class PythonContractParser implements LanguageParser {
         }
 
         if (!inQuote[0]) {
-            if (c == '[') {
-                brackets[0]++;
-            } else if (c == ']') {
-                brackets[0]--;
-            } else if (c == '{') {
-                brackets[1]++;
-            } else if (c == '}') {
-                brackets[1]--;
-            } else if (c == '(') {
-                brackets[2]++;
-            } else if (c == ')') {
-                brackets[2]--;
+            switch (c) {
+                case '[' -> brackets[0]++;
+                case ']' -> brackets[0]--;
+                case '{' -> brackets[1]++;
+                case '}' -> brackets[1]--;
+                case '(' -> brackets[2]++;
+                case ')' -> brackets[2]--;
             }
         }
     }
