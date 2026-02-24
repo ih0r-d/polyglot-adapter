@@ -50,7 +50,9 @@ public final class JavaInterfaceGenerator {
     ///
     /// Generates full Java interface source.
     ///
-    public String generate(ContractClass contract) {
+    public String generate(ContractClass contract, String basePackage) {
+
+        renderer.reset();
 
         StringBuilder methodsBuilder = new StringBuilder();
 
@@ -73,6 +75,10 @@ public final class JavaInterfaceGenerator {
 
         file.append(String.format(GENERATED_HEADER_TEMPLATE, checksum));
 
+        file.append("package ")
+                .append(basePackage)
+                .append(";\n\n");
+
         // imports
         if (!imports.isEmpty()) {
             for (String imp : imports) {
@@ -85,7 +91,6 @@ public final class JavaInterfaceGenerator {
 
         return file.toString();
     }
-
     /// ### sha256
     ///
     /// Calculates the SHA-256 hash of the given content.

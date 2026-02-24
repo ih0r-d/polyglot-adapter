@@ -8,7 +8,6 @@ import io.github.ih0rd.contract.ContractClass;
 import io.github.ih0rd.contract.ContractModel;
 import io.github.ih0rd.contract.ScriptDescriptor;
 import io.github.ih0rd.contract.SupportedLanguage;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,18 +42,28 @@ public final class CodegenMain {
     }
 
     private static CliArguments parseArguments(String[] args) {
-        if (args == null || args.length < 2) {
+        if (args == null || args.length < 3) {
             throw new IllegalArgumentException(
-                    "Usage: CodegenMain <inputDir> <outputDir> [options]"
+                    """
+                            Usage:
+                              CodegenMain <inputDir> <outputDir> --package=<basePackage>
+                              [--only-included-methods=true|false]
+                            """
             );
         }
 
         Path inputDir = Path.of(args[0]);
         Path outputDir = Path.of(args[1]);
 
+        String basePackage = null;
         boolean onlyIncludedMethods = false;
 
         for (String arg : args) {
+
+            if (arg.startsWith("--package=")) {
+                basePackage = arg.substring("--package=".length());
+            }
+
             if (arg.startsWith("--only-included-methods=")) {
                 onlyIncludedMethods =
                         Boolean.parseBoolean(
@@ -63,9 +72,16 @@ public final class CodegenMain {
             }
         }
 
+        if (basePackage == null || basePackage.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Missing required argument: --package=<basePackage>"
+            );
+        }
+
         return new CliArguments(
                 inputDir,
                 outputDir,
+                basePackage,
                 new CodegenConfig(onlyIncludedMethods)
         );
     }
@@ -123,10 +139,18 @@ public final class CodegenMain {
                     generator.generate(descriptor, cli.config());
 
             for (ContractClass contract : model.classes()) {
-                String javaSource = javaGenerator.generate(contract);
+                String javaSource = javaGenerator.generate(contract, cli.basePackage());
 
-                Path outputFile =
-                        cli.outputDir().resolve(contract.name() + ".java");
+                Path packageDir = cli.outputDir()
+                        .resolve(cli.basePackage().replace('.', '/'));
+
+                try {
+                    Files.createDirectories(packageDir);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to create package directory", e);
+                }
+
+                Path outputFile = packageDir.resolve(contract.name() + ".java");
 
                 Files.writeString(outputFile, javaSource);
             }

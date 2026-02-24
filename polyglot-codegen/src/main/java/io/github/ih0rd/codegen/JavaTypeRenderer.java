@@ -41,4 +41,12 @@ public final class JavaTypeRenderer {
     public Set<String> getImports() {
         return imports;
     }
+
+    /// Clears collected imports.
+    ///
+    /// Must be invoked before generating a new interface
+    /// when reusing the same renderer instance.
+    public void reset() {
+        imports.clear();
+    }
 }
