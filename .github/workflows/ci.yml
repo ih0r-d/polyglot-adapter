@@ -27,7 +27,7 @@ jobs:
         run: mvn -B -ntp clean verify
 
       - name: Upload JaCoCo report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: jacoco-report
           path: target/site/jacoco
