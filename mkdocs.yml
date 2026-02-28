@@ -1,0 +1,49 @@
+site_name: Polyglot Platform
+site_description: GraalVM-based polyglot runtime and tooling platform
+site_url: https://ih0r-d.github.io/polyglot-platform/
+
+repo_url: https://github.com/ih0r-d/polyglot-platform
+repo_name: polyglot-platform
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: white
+      accent: indigo
+  font:
+    text: Roboto
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Runtime Layer: runtime.md
+  - Tooling Layer: tooling.md
+  - Contract Model: contract-model.md
+  - Roadmap: roadmap.md
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables
+  - footnotes
+  - attr_list
+  - def_list
+  - md_in_html
+
+extra:
+  version:
+    provider: none
+
+copyright: Copyright © 2026 Ihor Didyk
