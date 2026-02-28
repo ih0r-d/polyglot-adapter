@@ -1,65 +1,88 @@
-# polyglot-adapter
+# Polyglot Platform
 
 ![Build](https://img.shields.io/badge/build-maven-blue?logo=apache-maven)
-![Java](https://img.shields.io/badge/JDK-25%2B-007396?logo=openjdk)
+![Java](https://img.shields.io/badge/JDK-21%20%7C%2025-007396?logo=openjdk)
 ![GraalVM](https://img.shields.io/badge/GraalVM-25.x-FF6F00?logo=oracle)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ih0r-d_polyglot-adapter&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ih0r-d_polyglot-adapter)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.ih0r-d/polyglot-adapter.svg?label=Maven%20Central)](https://search.maven.org/artifact/io.github.ih0r-d/polyglot-adapter)
 ![License](https://img.shields.io/badge/license-Apache--2.0-blue)
 
-[//]: # (![Coverage]&#40;https://sonarcloud.io/api/project_badges/measure?project=ih0r-d_polyglot-adapter&metric=coverage&#41;)
+A modular platform for running polyglot languages (Python, JavaScript)
+inside JVM applications via GraalVM Polyglot, with optional
+contract-based interface generation.
 
+------------------------------------------------------------------------
 
-A modular toolkit for running **Python** and **JavaScript** inside JVM applications via **GraalVM Polyglot**.
+## Architecture Overview
 
-This repository contains:
+Polyglot Platform consists of two independent layers:
 
-- **`polyglot-core`** — framework-agnostic Java SDK (executors, binding, context helper)
-- **`polyglot-spring-boot-starter`** — Spring Boot 4 auto-configuration + client scanning + Actuator/Micrometer
-- **`polyglot-bom`** — BOM for consistent dependency versions
-- **`examples/`** — demo apps
+-   **Adapter** --- runtime execution layer (JDK 25)
+-   **Tooling** --- contract and interface generation (JDK 21)
 
----
+------------------------------------------------------------------------
 
-## Repository layout
+## Repository Structure
 
-```
-.
-├── polyglot-bom/
-├── polyglot-core/
-├── polyglot-spring-boot-starter/
-├── examples/
-├── scripts/
-├── pom.xml
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── CODE_OF_CONDUCT.md
-├── LICENSE
-└── Taskfile.yaml
-```
+    .
+    ├── adapter/                (JDK 25 runtime)
+    │   ├── polyglot-adapter/
+    │   ├── polyglot-spring-boot-starter/
+    │   └── polyglot-bom/
+    │
+    ├── tooling/                (JDK 21 build-time tools)
+    │   ├── polyglot-contract-api/
+    │   ├── polyglot-codegen/
+    │   └── polyglot-codegen-maven-plugin/
+    │
+    ├── examples/
+    ├── scripts/
+    └── CHANGELOG.md
 
----
+------------------------------------------------------------------------
+
+## Components
+
+### Adapter (Runtime -- JDK 25)
+
+-   **polyglot-adapter** --- framework-agnostic execution layer
+-   **polyglot-spring-boot-starter** --- Spring Boot 4
+    autoconfiguration
+-   **polyglot-bom** --- dependency management
+
+------------------------------------------------------------------------
+
+### Tooling (Build-time -- JDK 21)
+
+-   **polyglot-contract-api** --- shared contract model
+-   **polyglot-codegen** --- contract → Java interface generator
+-   **polyglot-codegen-maven-plugin** --- Maven integration
+
+------------------------------------------------------------------------
 
 ## Requirements
 
-- **JDK 25+**
-- **GraalVM 25.x+**
-- **Maven 3.9+**
+### Runtime (adapter)
 
-> The **starter** targets **Spring Boot 4.x**.
+-   JDK 25+
+-   GraalVM 25.x+
+-   Maven 3.9+
 
----
+### Tooling
 
-## Quick start
+-   JDK 21+
+-   Maven 3.9+
 
-### 1) Use the BOM (recommended)
+------------------------------------------------------------------------
 
-Import the BOM and then add the module(s) you need without versions:
+## Quick Start (Runtime)
 
-```xml
+### 1. Import BOM
+
+``` xml
 <dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>io.github.ih0rd</groupId>
+      <groupId>io.github.ih0r-d</groupId>
       <artifactId>polyglot-bom</artifactId>
       <version>${polyglot.version}</version>
       <type>pom</type>
@@ -69,66 +92,69 @@ Import the BOM and then add the module(s) you need without versions:
 </dependencyManagement>
 ```
 
-### 2) Core SDK (framework-agnostic)
+### 2. Add Adapter
 
-```xml
+``` xml
 <dependency>
-  <groupId>io.github.ih0rd</groupId>
+  <groupId>io.github.ih0r-d</groupId>
   <artifactId>polyglot-adapter</artifactId>
 </dependency>
 ```
 
-### 3) Spring Boot Starter
+### 3. Optional: Spring Boot Starter
 
-```xml
+``` xml
 <dependency>
-  <groupId>io.github.ih0rd</groupId>
+  <groupId>io.github.ih0r-d</groupId>
   <artifactId>polyglot-spring-boot-starter</artifactId>
 </dependency>
 ```
 
----
+------------------------------------------------------------------------
 
-## Optional language runtimes (add only what you use)
+## Optional Language Runtimes
 
-The project keeps language engines **optional** to avoid unwanted transitive pulls.
+### GraalPy
 
-### 🐍 GraalPy
-
-```xml
+``` xml
 <dependency>
   <groupId>org.graalvm.python</groupId>
   <artifactId>python-embedding</artifactId>
-  <version>25.0.1</version>
 </dependency>
 <dependency>
   <groupId>org.graalvm.python</groupId>
   <artifactId>python-launcher</artifactId>
-  <version>25.0.1</version>
 </dependency>
 ```
 
-### 🕸 GraalJS
+### GraalJS
 
-```xml
+``` xml
 <dependency>
   <groupId>org.graalvm.js</groupId>
   <artifactId>js</artifactId>
-  <version>25.0.1</version>
   <type>pom</type>
 </dependency>
 ```
 
----
+------------------------------------------------------------------------
 
-## Documentation
+## Development
 
-- [Core SDK](./polyglot-core/README.md)
-- [Spring Boot starter](./polyglot-spring-boot-starter/README.md)
+Build everything:
 
----
+    task build
 
+Build only adapter:
 
-## 📜 License
-Licensed under the **Apache License 2.0**.  
-See [LICENSE](./LICENSE) for details.
+    MODULE=polyglot-adapter task build
+
+Build only tooling:
+
+    MODULE=polyglot-codegen task build
+
+------------------------------------------------------------------------
+
+## License
+
+Licensed under the Apache License 2.0.

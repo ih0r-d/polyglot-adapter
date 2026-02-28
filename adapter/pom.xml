@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>io.github.ih0r-d</groupId>
     <artifactId>polyglot-adapter-parent</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+
     <name>polyglot-adapter-parent</name>
-    <description>Lightweight Java SDK for executing polyglot code via GraalVM</description>
-    <url>https://github.com/ih0r-d/polyglot-adapter</url>
+    <description>Runtime layer of the Polyglot Platform (GraalVM-based polyglot execution)</description>
+    <url>https://github.com/ih0r-d/polyglot-platform</url>
+
     <modules>
         <module>polyglot-bom</module>
-        <module>polyglot-core</module>
+        <module>polyglot-adapter</module>
         <module>polyglot-spring-boot-starter</module>
     </modules>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
@@ -23,22 +30,18 @@
         <jacoco-plugin.version>0.8.14</jacoco-plugin.version>
         <enforcer-plugin.version>3.6.2</enforcer-plugin.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
-        <!--        Sonar config    -->
         <sonar-plugin.version>5.5.0.6356</sonar-plugin.version>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>ih0r-d</sonar.organization>
-        <sonar.projectKey>ih0r-d_polyglot-adapter</sonar.projectKey>
-        <!--        Temporary 60% coverage-->
+        <sonar.projectKey>ih0r-d_polyglot-platform</sonar.projectKey>
         <jacoco.coverage.instruction.minimum>0.60</jacoco.coverage.instruction.minimum>
         <surefire-plugin.version>3.5.5</surefire-plugin.version>
         <flatten-plugin.version>1.7.3</flatten-plugin.version>
-
         <publishing-plugin.version>0.10.0</publishing-plugin.version>
         <javadoc-plugin.version>3.12.0</javadoc-plugin.version>
         <source-plugin.version>3.4.0</source-plugin.version>
         <gpg-plugin.version>3.2.8</gpg-plugin.version>
         <gpg-passphrase>${env.GPG_PASSPHRASE}</gpg-passphrase>
-
         <graal.version>25.0.2</graal.version>
         <junit.version>6.0.3</junit.version>
         <mockito.version>5.22.0</mockito.version>
@@ -47,18 +50,21 @@
         <bcpg.version>1.83</bcpg.version>
         <spring-boot.version>4.0.3</spring-boot.version>
     </properties>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
             <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
+
     <scm>
-        <connection>scm:git:git://github.com/ih0r-d/polyglot-adapter.git</connection>
-        <developerConnection>scm:git:ssh://github.com:ih0r-d/polyglot-adapter.git</developerConnection>
-        <url>https://github.com/ih0r-d/polyglot-adapter</url>
+        <connection>scm:git:git://github.com/ih0r-d/polyglot-platform.git</connection>
+        <developerConnection>scm:git:ssh://github.com:ih0r-d/polyglot-platform.git</developerConnection>
+        <url>https://github.com/ih0r-d/polyglot-platform</url>
         <tag>HEAD</tag>
     </scm>
+
     <developers>
         <developer>
             <id>ih0rd</id>
@@ -66,6 +72,7 @@
             <url>https://github.com/ih0r-d</url>
         </developer>
     </developers>
+
     <distributionManagement>
         <snapshotRepository>
             <id>central</id>
@@ -76,21 +83,21 @@
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
     <pluginRepositories>
         <pluginRepository>
             <id>central</id>
             <url>https://repo.maven.apache.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
+
     <dependencyManagement>
         <dependencies>
-            <!-- core itself -->
             <dependency>
                 <groupId>io.github.ih0r-d</groupId>
                 <artifactId>polyglot-adapter</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <!-- GraalVM core -->
             <dependency>
                 <groupId>org.graalvm.sdk</groupId>
                 <artifactId>graal-sdk</artifactId>
@@ -101,7 +108,6 @@
                 <artifactId>polyglot</artifactId>
                 <version>${graal.version}</version>
             </dependency>
-            <!-- GraalPy -->
             <dependency>
                 <groupId>org.graalvm.python</groupId>
                 <artifactId>python-launcher</artifactId>
@@ -112,20 +118,17 @@
                 <artifactId>python-embedding</artifactId>
                 <version>${graal.version}</version>
             </dependency>
-            <!-- GraalJS -->
             <dependency>
                 <groupId>org.graalvm.js</groupId>
                 <artifactId>js</artifactId>
                 <version>${graal.version}</version>
                 <type>pom</type>
             </dependency>
-            <!-- crypto -->
             <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpg-jdk18on</artifactId>
                 <version>${bcpg.version}</version>
             </dependency>
-            <!-- test deps -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
@@ -151,7 +154,6 @@
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
             </dependency>
-            <!-- Spring Boot BOM -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -173,7 +175,14 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>
+                            --enable-native-access=ALL-UNNAMED
+                            -XX:+EnableDynamicAgentLoading
+                        </argLine>
+                    </configuration>
                 </plugin>
+
                 <plugin>
                     <groupId>com.diffplug.spotless</groupId>
                     <artifactId>spotless-maven-plugin</artifactId>
@@ -227,73 +236,4 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.sonatype.central</groupId>
-                        <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>${publishing-plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <publishingServerId>central</publishingServerId>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>${javadoc-plugin.version}</version>
-                        <configuration>
-                            <failOnError>false</failOnError>
-                            <doclint>none</doclint>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>${source-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${gpg-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                                <configuration>
-                                    <passphrase>${gpg-passphrase}</passphrase>
-                                    <gpgArguments>
-                                        <arg>--pinentry-mode</arg>
-                                        <arg>loopback</arg>
-                                    </gpgArguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

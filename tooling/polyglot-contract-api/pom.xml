@@ -7,8 +7,8 @@
 
     <parent>
         <groupId>io.github.ih0r-d</groupId>
-        <artifactId>polyglot-codegen-parent</artifactId>
-        <version>0.1.1-SNAPSHOT</version>
+        <artifactId>polyglot-tooling-parent</artifactId>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>polyglot-contract-api</artifactId>

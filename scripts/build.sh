@@ -1,29 +1,40 @@
 #!/usr/bin/env bash
-set -e
-
-MODULE="${MODULE:-}"
-SKIP_TESTS="${SKIP_TESTS:-false}"
+set -eo pipefail
 
 export SDKMAN_DIR="$HOME/.sdkman"
-source "$SDKMAN_DIR/bin/sdkman-init.sh" >/dev/null 2>&1
-sdk env >/dev/null 2>&1
+source "$SDKMAN_DIR/bin/sdkman-init.sh"
 
-LOG=$(mktemp)
-
-cleanup() {
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    cat "$LOG"
-  fi
-  rm -f "$LOG"
-  exit $rc
+log() {
+  echo "[INFO] $1"
 }
-trap cleanup EXIT
 
-MVN_ARGS=("-q")
+build_module () {
+  local DIR="$1"
 
-[ -n "$MODULE" ] && MVN_ARGS+=("-pl" "$MODULE")
-[ "$SKIP_TESTS" = "true" ] && MVN_ARGS+=("-DskipTests")
+  log "Building module: $DIR"
+  pushd "$DIR" >/dev/null
 
-echo "→ mvn ${MVN_ARGS[*]} install"
-./mvnw "${MVN_ARGS[@]}" install >>"$LOG" 2>&1
+  sdk env >/dev/null
+
+  log "JDK: $(java -version 2>&1 | head -n 1)"
+
+  if ../mvnw -q -ntp clean install -Djacoco.skip=true  ; then
+    echo "[OK] $DIR build successful"
+  else
+    echo "[FAIL] $DIR build failed"
+    exit 1
+  fi
+
+  popd >/dev/null
+}
+
+echo "========================================"
+echo " Polyglot Platform Build"
+echo "========================================"
+
+build_module tooling
+build_module adapter
+
+echo "========================================"
+echo "[OK] Platform build completed"
+echo "========================================"

@@ -9,13 +9,11 @@ vars:
 
 tasks:
   clean:
-    desc: Clean target and python resources
+    desc: Clean all modules
     silent: true
     cmds:
-      - echo "🧹 Cleaning project..."
-      - rm -rf python-resources target
-      - echo "🧩 Running Maven clean..."
-      - MAVEN_OPTS="{{.MAVEN_OPTS}}" ./mvnw clean -q 2>/dev/null
+      - echo "🧹 Cleaning all targets..."
+      - find . -type d -name target -exec rm -rf {} +
       - echo "✅ Clean complete."
 
   build:

@@ -1,10 +1,7 @@
-# Root .gitignore for a multi-module Maven project
-# Applies recursively to all modules (core, examples, etc.)
-
-# Maven build output (for all modules)
+# ===============================
+# Maven (all modules recursively)
+# ===============================
 target/
-
-# Maven release/versions plugin files
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -12,20 +9,20 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-polyglot-adapter-core/.mvn/timing.properties
-.flattened-pom.xml
-.flattened-pom.pom
+.local
 
-# IntelliJ IDEA
+# Flatten plugin
+.flattened-pom.xml
+
+# ===============================
+# IDE
+# ===============================
+
+# IntelliJ
 .idea/
 *.iml
 *.ipr
 *.iws
-# IntelliJ additional files
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/dictionaries
-.idea/**/shelf
 
 # Eclipse
 .project
@@ -43,47 +40,47 @@ nbdist/
 # VS Code
 .vscode/
 
-# Operating system files
+# ===============================
+# OS
+# ===============================
 .DS_Store
 Thumbs.db
 
-# Logs and JVM crash logs
+# ===============================
+# Logs / JVM
+# ===============================
 logs/
 *.log
 hs_err_pid*
 replay_pid*
 
+# ===============================
 # Java
+# ===============================
 *.class
 
-# Environment and local config
-.env
-.env.*
-
-# Coverage / reports (if not already in target)
+# ===============================
+# Coverage
+# ===============================
 jacoco.exec
 *.lcov
 
-# Temporary files
+# ===============================
+# Env / local
+# ===============================
+.env
+.env.*
+local/
+*.asc
+settings-local.xml
+
+# ===============================
+# SDKMAN (if local overrides appear)
+# ===============================
+.sdkmanrc.local
+
+# ===============================
+# Temporary
+# ===============================
 *.swp
 *.swo
-
-# Module-specific ignores (explicit for clarity)
-# Core module
-core/target/
-core/.idea/
-core/*.iml
-
-# Examples aggregator and nested example modules
-examples/target/
-examples/*/target/
-examples/**/target/
-
-# Note: The generic pattern "target/" above already ignores all module targets.
-# These explicit entries are for readability and to cover future nested example modules.
-
-# any secret keys
-*.asc
-local/**
-local/settings-local.xml
-

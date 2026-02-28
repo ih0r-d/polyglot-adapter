@@ -25,7 +25,7 @@
 
         <graal.version>25.0.1</graal.version>
         <graalpy-plugin.version>25.0.1</graalpy-plugin.version>
-        <polyglot-adapter.version>0.1.1-SNAPSHOT</polyglot-adapter.version>
+        <polyglot-adapter.version>0.2.0-SNAPSHOT</polyglot-adapter.version>
     </properties>
 
     <dependencies>

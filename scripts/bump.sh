@@ -1,25 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
-TYPE=${1:-patch}  # patch|minor|major
+TYPE=${1:-patch}
 
-# ---- functions ----
-mvn_get_version() {
-  ./mvnw -q help:evaluate \
-    -Dexpression=project.version \
-    -DforceStdout
+source "$HOME/.sdkman/bin/sdkman-init.sh" >/dev/null 2>&1
+
+get_version() {
+  cd "$1"
+  sdk env >/dev/null 2>&1
+  ./mvnw -q help:evaluate -Dexpression=project.version -DforceStdout
+  cd - >/dev/null
 }
 
-mvn_set_version() {
-  MAVEN_OPTS="--enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED" \
+set_version() {
+  cd "$1"
+  sdk env >/dev/null 2>&1
   ./mvnw -q -B -ntp versions:set \
-    -DnewVersion="$1" \
+    -DnewVersion="$2" \
     -DprocessAllModules=true \
     -DgenerateBackupPoms=false
+  cd - >/dev/null
 }
 
-# ---- logic ----
-CURRENT="$(mvn_get_version)"
+CURRENT="$(get_version adapter)"
 BASE="${CURRENT/-SNAPSHOT/}"
 
 IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE"
@@ -28,17 +31,15 @@ case "$TYPE" in
   major) ((MAJOR++)); MINOR=0; PATCH=0 ;;
   minor) ((MINOR++)); PATCH=0 ;;
   patch) ((PATCH++)) ;;
-  *)
-    echo "❌ Unknown bump type: $TYPE (use patch|minor|major)"
-    exit 1
-    ;;
+  *) echo "❌ Use patch|minor|major"; exit 1 ;;
 esac
 
 NEXT="$MAJOR.$MINOR.$PATCH-SNAPSHOT"
 
-mvn_set_version "$NEXT"
+set_version adapter "$NEXT"
+set_version tooling "$NEXT"
 
-git add pom.xml **/pom.xml || true
+git add adapter/**/pom.xml tooling/**/pom.xml
 git commit -m "Bump version: $CURRENT → $NEXT" || true
 
-echo "✅ Bumped version: $CURRENT → $NEXT"
+echo "✅ Bumped: $CURRENT → $NEXT"

@@ -1,12 +1,37 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
+
   "labels": ["dependencies"],
   "dependencyDashboard": true,
+
+  "ignorePaths": [
+    "examples/**",
+    ".local/**",
+    "docs/**"
+  ],
+
   "packageRules": [
     {
       "matchManagers": ["maven"],
+      "matchPaths": [
+        "adapter/**",
+        "tooling/**"
+      ],
       "groupName": "Maven dependencies",
+      "automerge": false
+    },
+    {
+      "matchManagers": ["maven"],
+      "matchDepTypes": ["plugin"],
+      "groupName": "Maven plugins",
+      "separateMinorPatch": true,
+      "automerge": false
+    },
+    {
+      "matchManagers": ["maven"],
+      "matchUpdateTypes": ["major"],
+      "labels": ["breaking-change"],
       "automerge": false
     },
     {

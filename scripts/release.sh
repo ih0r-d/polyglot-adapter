@@ -1,58 +1,46 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 VERSION=${1:-}
-MODULE=${2:-}
 
 if [ -z "$VERSION" ]; then
   echo "❌ VERSION required"
-  echo "Usage:"
-  echo "  ./scripts/release.sh 0.0.22"
-  echo "  ./scripts/release.sh 0.0.22 polyglot-core"
   exit 1
 fi
 
 if ! git diff-index --quiet HEAD --; then
-  echo "❌ Working directory not clean."
+  echo "❌ Working directory not clean"
   exit 1
 fi
 
-if git show-ref --tags --verify --quiet "refs/tags/v$VERSION"; then
-  echo "⚠️ Tag v$VERSION already exists."
-  exit 0
-fi
+source "$HOME/.sdkman/bin/sdkman-init.sh" >/dev/null 2>&1
 
-export MAVEN_OPTS="--enable-native-access=ALL-UNNAMED \
-  --add-opens=java.base/java.lang=ALL-UNNAMED"
+release_module() {
+  local DIR="$1"
 
-echo "🔧 Setting version $VERSION for all modules"
+  echo "→ Releasing $DIR"
+  cd "$DIR"
+  sdk env >/dev/null 2>&1
 
-./mvnw -q -ntp -B versions:set \
-  -DnewVersion="$VERSION" \
-  -DprocessAllModules=true \
-  -DprocessParent=true \
-  -DgenerateBackupPoms=false
+  ./mvnw -q -ntp -B versions:set \
+    -DnewVersion="$VERSION" \
+    -DprocessAllModules=true \
+    -DgenerateBackupPoms=false
 
-# ------------------------------------------------------------------
-# CHANGELOG
-# ------------------------------------------------------------------
+  ./mvnw -Prelease deploy
 
-if [ ! -f CHANGELOG.md ]; then
-  echo "📝 Generating initial CHANGELOG.md"
-  git cliff --config .git-cliff.toml --output CHANGELOG.md
-else
-  echo "📝 Updating CHANGELOG.md for $VERSION"
-  git cliff --config .git-cliff.toml \
-    --unreleased \
-    --tag "$VERSION" \
-    --prepend CHANGELOG.md
-fi
+  cd - >/dev/null
+}
 
-# ------------------------------------------------------------------
-# Commit + tag
-# ------------------------------------------------------------------
+release_module adapter
+release_module tooling
 
-git add pom.xml CHANGELOG.md */pom.xml
+git cliff --config .git-cliff.toml \
+  --unreleased \
+  --tag "$VERSION" \
+  --prepend CHANGELOG.md
+
+git add CHANGELOG.md adapter/**/pom.xml tooling/**/pom.xml
 git commit -m "Release $VERSION" || true
 git tag -a "v$VERSION" -m "Release $VERSION"
 
