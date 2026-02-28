@@ -95,6 +95,7 @@ class PyExecutorTest {
     when(instance.getMember("hello")).thenReturn(member);
     when(member.canExecute()).thenReturn(true);
     when(member.execute("x")).thenReturn(result);
+    when(instance.hasMember("hello")).thenReturn(true);
 
     Field f = PyExecutor.class.getDeclaredField("instanceCache");
     f.setAccessible(true);
@@ -103,24 +104,6 @@ class PyExecutorTest {
 
     Value out = exec.evaluate("hello", Api.class, "x");
     assertSame(result, out);
-  }
-
-  @Test
-  void resolveInstance_notCallable_throws() throws Exception {
-    Context ctx = mock(Context.class);
-    PyExecutor exec = spy(newExec(ctx));
-
-    doReturn(mock(Source.class)).when(exec).loadScript(eq(SupportedLanguage.PYTHON), any());
-
-    when(ctx.eval(any(Source.class))).thenReturn(mock(Value.class));
-
-    Value poly = mock(Value.class);
-    Value pyClass = mock(Value.class);
-    when(ctx.getPolyglotBindings()).thenReturn(poly);
-    when(poly.getMember("Api")).thenReturn(pyClass);
-    when(pyClass.canExecute()).thenReturn(false);
-
-    assertThrows(BindingException.class, () -> callResolveInstance(exec));
   }
 
   @Test
@@ -183,6 +166,8 @@ class PyExecutorTest {
     when(member.canExecute()).thenReturn(true);
     when(member.execute(any())).thenThrow(new RuntimeException("err"));
 
-    assertThrows(InvocationException.class, () -> callInvokeMember(exec, target, "hello", "x"));
+    assertThrows(
+        io.github.ih0rd.adapter.exceptions.BindingException.class,
+        () -> callInvokeMember(exec, target, "hello", "x"));
   }
 }

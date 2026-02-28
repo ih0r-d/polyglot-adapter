@@ -113,8 +113,39 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
 
   /// ### resolveInstance
   ///
-  /// Resolves or creates a Python instance for the given Java interface.
+  /// Resolves or creates a Python target object for the given Java interface.
+  ///
+  /// Supported export styles:
+  ///
+  /// Class-style export
+  ///    The exported value is a callable Python class.
+  ///    The executor instantiates it via execute().
+  ///
+  ///    Example:
+  ///    class StatsApi:
+  ///        ...
+  ///    polyglot.export_value("StatsApi", StatsApi)
+  ///
+  /// Object-style export (function map)
+  ///    The exported value is a dictionary-like object containing functions.
+  ///    The executor uses it directly without instantiation.
+  ///
+  ///    Example:
+  ///    polyglot.export_value(
+  ///        "StatsApiV2",
+  ///        {
+  ///            "randomNumbers": randomNumbers,
+  ///            "stats": stats
+  ///        }
+  ///    )
+  ///
+  /// The resolved target is cached per interface using WeakReference
+  /// to avoid retaining guest objects longer than the context lifecycle.
+  ///
+  /// @param iface Java interface type
+  /// @return resolved Python instance or exported object
   private <T> Value resolveInstance(Class<T> iface) {
+
     WeakReference<Value> ref = instanceCache.get(iface);
     Value cached = (ref != null ? ref.get() : null);
     if (cached != null && !cached.isNull()) {
@@ -124,20 +155,25 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
     Source source = resolveSource(iface);
     context.eval(source);
 
-    Value pyClass = resolveClass(iface);
-    if (!pyClass.canExecute()) {
-      throw new BindingException(
-          "Python class '%s' is not callable".formatted(iface.getSimpleName()));
+    Value exported = resolveClass(iface);
+
+    Value instance;
+
+    if (exported.canExecute()) {
+      // class-style export
+      try {
+        instance = exported.execute();
+      } catch (Exception e) {
+        throw new InvocationException(
+            "Failed to instantiate Python class '%s'".formatted(iface.getSimpleName()), e);
+      }
+    } else {
+      // object-style export (map of functions)
+      instance = exported;
     }
 
-    try {
-      Value instance = pyClass.execute();
-      instanceCache.put(iface, new WeakReference<>(instance));
-      return instance;
-    } catch (Exception e) {
-      throw new InvocationException(
-          "Failed to instantiate Python class '%s'".formatted(iface.getSimpleName()), e);
-    }
+    instanceCache.put(iface, new WeakReference<>(instance));
+    return instance;
   }
 
   /// ### resolveClass
@@ -164,14 +200,40 @@ public final class PyExecutor extends AbstractPolyglotExecutor {
 
   /// ### invokeMember
   ///
-  /// Invokes a method on a Python instance.
+  /// Invokes a method on a resolved Python target.
+  ///
+  /// Supports two export styles:
+  ///
+  /// Class-style export
+  ///    Methods are exposed as object members and accessed via getMember().
+  ///
+  /// Object-style export (dictionary of functions)
+  ///    Methods are stored as hash entries and accessed via getHashValue().
+  ///
+  /// The method resolves the correct access strategy automatically.
+  ///
+  /// @param target resolved Python instance or exported object
+  /// @param methodName method name to invoke
+  /// @param args arguments passed to the Python function
+  /// @return result of the Python invocation
   private Value invokeMember(Value target, String methodName, Object... args) {
+
     if (target == null || target.isNull()) {
       throw new BindingException(
-          "Cannot invoke method '%s' on null Python instance".formatted(methodName));
+          "Cannot invoke method '%s' on null Python target".formatted(methodName));
     }
 
-    Value member = target.getMember(methodName);
+    Value member = null;
+
+    // Class-style: method exposed as member
+    if (target.hasMember(methodName)) {
+      member = target.getMember(methodName);
+    }
+    // Object-style: exported dict of functions
+    else if (target.hasHashEntries()) {
+      member = target.getHashValue(methodName);
+    }
+
     if (member == null || !member.canExecute()) {
       throw new BindingException(
           "Python method '%s' not found or not executable".formatted(methodName));
