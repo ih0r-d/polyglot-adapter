@@ -192,6 +192,44 @@
             </build>
         </profile>
 
+        <!-- ========================================================= -->
+        <!-- Codegen via Polyglot Maven Plugin                         -->
+        <!-- Activated with: mvn clean install -Pcodegen-plugin        -->
+        <!-- ========================================================= -->
+        <profile>
+            <id>codegen-plugin</id>
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <groupId>io.github.ih0r-d</groupId>
+                        <artifactId>polyglot-codegen-maven-plugin</artifactId>
+                        <version>${polyglot-adapter.version}</version>
+                        <executions>
+                            <execution>
+                                <id>generate-polyglot-contracts</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                                <configuration>
+                                    <inputDirectory>
+                                        ${project.basedir}/src/main/resources/python
+                                    </inputDirectory>
+                                    <outputDirectory>
+                                        ${project.build.directory}/generated-sources/polyglot
+                                    </outputDirectory>
+                                    <basePackage>
+                                        ${project.groupId}.polyglot
+                                    </basePackage>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>
