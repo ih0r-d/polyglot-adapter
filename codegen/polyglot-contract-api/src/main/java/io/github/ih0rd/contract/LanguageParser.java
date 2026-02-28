@@ -1,10 +1,5 @@
 package io.github.ih0rd.contract;
 
-import io.github.ih0rd.contract.CodegenConfig;
-import io.github.ih0rd.contract.ScriptDescriptor;
-import io.github.ih0rd.contract.ContractModel;
-import io.github.ih0rd.contract.SupportedLanguage;
-
 /// # LanguageAstParser
 ///
 /// SPI for language-specific AST parsers.

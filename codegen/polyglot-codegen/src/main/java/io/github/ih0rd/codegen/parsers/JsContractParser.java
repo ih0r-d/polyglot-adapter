@@ -5,7 +5,6 @@ import io.github.ih0rd.contract.LanguageParser;
 import io.github.ih0rd.contract.ScriptDescriptor;
 import io.github.ih0rd.contract.ContractModel;
 import io.github.ih0rd.contract.SupportedLanguage;
-import io.github.ih0rd.contract.ScriptSource;
 
 /// # JsAstParser
 ///

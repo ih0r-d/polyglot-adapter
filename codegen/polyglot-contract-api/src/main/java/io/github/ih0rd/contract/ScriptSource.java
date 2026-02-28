@@ -3,8 +3,6 @@ package io.github.ih0rd.contract;
 import java.io.IOException;
 import java.io.Reader;
 
-import io.github.ih0rd.contract.SupportedLanguage;
-
 /// # ScriptSource
 ///
 /// Abstraction for resolving and opening polyglot scripts.

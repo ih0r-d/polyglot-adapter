@@ -178,7 +178,7 @@ public final class PythonContractParser implements LanguageParser {
 
         Map<String, List<String>> reverseMap = new HashMap<>();
         mapping.forEach((exportName, internalName) ->
-                reverseMap.computeIfAbsent(internalName, _ -> new ArrayList<>()).add(exportName)
+                reverseMap.computeIfAbsent(internalName, interf -> new ArrayList<>()).add(exportName)
         );
 
         for (int i = 0; i < lines.length; i++) {

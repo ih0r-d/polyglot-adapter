@@ -25,13 +25,24 @@
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- spring starter -->
+            <dependency>
+                <groupId>io.github.ih0r-d</groupId>
+                <artifactId>polyglot-contract-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.ih0r-d</groupId>
+                <artifactId>polyglot-codegen</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>io.github.ih0r-d</groupId>
                 <artifactId>polyglot-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
-                <optional>true</optional>
             </dependency>
+
 
             <!-- GraalVM core -->
             <dependency>
